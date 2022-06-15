@@ -1,0 +1,18 @@
+{
+  "name": "engine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "add": "node src/runAddPortraits.js",
+    "search": "node src/runSearchPortraits.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-rekognition": "^3.109.0",
+    "@aws-sdk/client-s3": "^3.109.0"
+  }
+}
