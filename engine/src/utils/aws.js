@@ -10,6 +10,7 @@ const clientConfig = {
     region: "us-east-1"
 }
 
+
 const rekognitionClient = new RekognitionClient(clientConfig);
 const s3 = new S3Client(clientConfig);
 
