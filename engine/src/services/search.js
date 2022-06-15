@@ -100,7 +100,7 @@ const findMatch = async (user, person, medias, folder) => {
 }
 
 
-const searchPortraits = async (user, person, medias) => {
+const search = async (user, person, medias) => {
     const ts = timeStamp()
     const folder = `${user.id}_${user.name}_${ts}`
 
@@ -113,4 +113,4 @@ const searchPortraits = async (user, person, medias) => {
     console.log('we have matches ', r)
 }
 
-export { searchPortraits }
+export { search }

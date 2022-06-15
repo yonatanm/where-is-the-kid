@@ -6,8 +6,9 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "add": "node src/runAddPortraits.js",
-    "search": "node src/runSearchPortraits.js"
+    "add": "node src/controllers/runAddPortraits.js",
+    "search": "node src/controllers/runSearch.js",
+    "compare": "node src/controllers/runCompare.js"
   },
   "author": "",
   "license": "ISC",
