@@ -1,8 +1,11 @@
 import { S3Client, PutObjectCommand, ListObjectsCommand } from "@aws-sdk/client-s3";
 import { RekognitionClient, DeleteCollectionCommand, CreateCollectionCommand, SearchFacesByImageCommand, IndexFacesCommand } from "@aws-sdk/client-rekognition";
+require('dotenv').config();
 
 const clientConfig = {
     credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }, 
     region: "us-east-1"
 }
