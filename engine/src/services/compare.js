@@ -12,7 +12,8 @@ const findMatch = async (user, person, sourceMedia, targetMedia) => {
         },
         TargetImage: {
             Bytes: targetMedia.data
-        }
+        },
+        SimilarityThreshold: 70,
 
     }));
 
