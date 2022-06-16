@@ -1,5 +1,5 @@
-import { search } from './services/search.js'
-import { loadImagesFromFolder, db } from './utils/utils.js';
+import { search } from '../services/search'
+import { loadImagesFromFolder, db } from '../utils/utils';
 import * as path from "path";
 
 

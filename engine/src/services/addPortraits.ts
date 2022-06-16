@@ -1,12 +1,7 @@
-import { s3, PutObjectCommand } from '../utils/aws.js'
+import { s3, PutObjectCommand } from '../utils/aws'
+import {IUser, IPerson, IMedia} from '../types'
 
-/* user - the app {id, name},
-* person - the {id, name}
-* medais - [{mimetype, data, metadata:{origFile}}]
-*/
-
-//aws s3 cp $BASE/portraits/$1  s3://dev.portraits/$1 --recursive
-async function uploadPortraitToS3(user, person, media, fullPath) {
+async function uploadPortraitToS3(user : IUser, person : IPerson, media : IMedia, fullPath: string) {
     console.log('uploading ', fullPath)
     try {
         await s3.send(new PutObjectCommand({
@@ -20,7 +15,7 @@ async function uploadPortraitToS3(user, person, media, fullPath) {
     }
 }
 
-const addPortraits = async (user, person, medias) => {
+const addPortraits = async (user : IUser, person : IPerson, medias : IMedia[]) => {
     let i = 0;
     for (let media of medias) {
         const fullPath = `${person.id}_${person.name}/${i}.jpg`

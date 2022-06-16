@@ -1,14 +1,16 @@
-import { timeStamp } from '../utils/utils.js'
-import { s3, rekognitionClient, PutObjectCommand, CreateCollectionCommand, DeleteCollectionCommand, IndexFacesCommand, SearchFacesByImageCommand, ListObjectsCommand } from '../utils/aws.js'
+import { timeStamp } from '../utils/utils'
+import { s3, rekognitionClient, PutObjectCommand, CreateCollectionCommand, DeleteCollectionCommand, IndexFacesCommand, SearchFacesByImageCommand, ListObjectsCommand } from '../utils/aws'
+import { IUser, IPerson, IMedia } from '../types'
+
 
 /* user - the app {id, name},
 * person - the {id, name}
 * medais - [{mimetype, data, metadata:{origFile}}]
 */
 
-const getFullPath = (folder, i) => `${folder}/${i}.jpg`
+const getFullPath = (folder: string, i: Number) => `${folder}/${i}.jpg`
 
-const uploadimage = async (user, person, media, fullPath) => {
+const uploadimage = async (user: IUser, person: IPerson, media: IMedia, fullPath: string) => {
     try {
         await s3.send(new PutObjectCommand({
             Bucket: 'dev.gallary',
@@ -21,7 +23,7 @@ const uploadimage = async (user, person, media, fullPath) => {
     }
 }
 
-const uploadGallary = async (user, person, medias, folder) => {
+const uploadGallary = async (user: IUser, person: IPerson, medias: IMedia[], folder: string) => {
     let i = 0;
     for (let media of medias) {
         const fullPath = getFullPath(folder, i)
@@ -30,7 +32,7 @@ const uploadGallary = async (user, person, medias, folder) => {
     }
 }
 
-const indexGallary = async (user, person, medias, folder) => {
+const indexGallary = async (user: IUser, person: IPerson, medias: IMedia[], folder: string) => {
     // aws rekognition delete-collection --collection-id face-collection-gallary  --region us-east-1
     const collectionId = `collection-${folder}`
     try {
@@ -65,7 +67,7 @@ const indexGallary = async (user, person, medias, folder) => {
         i++
     }
 }
-const findMatch = async (user, person, medias, folder) => {
+const findMatch = async (user : IUser, person:IPerson, medias:IMedia[], folder:string) => {
     // aws rekognition search-faces-by-image  --image '{"S3Object":{"Bucket":"dev.portraits","Name":"'$P'"}}' 
     // --collection-id face-collection-gallary --face-match-threshold 70 --region us-east-1 | jq '.FaceMatches[].Face.ExternalImageId' |  tr -d '"' 
     const dirFullPath = `${person.id}_${person.name}`
@@ -73,7 +75,7 @@ const findMatch = async (user, person, medias, folder) => {
         Bucket: 'dev.portraits',
         Prefix: dirFullPath
     }))
-    const matches = []
+    const matches: string[] = []
     if (ls.Contents && ls.Contents.length > 0) {
         for (let c of ls.Contents) {
             console.log('looking for ', c.Key)
@@ -90,7 +92,7 @@ const findMatch = async (user, person, medias, folder) => {
             if (res.FaceMatches && res.FaceMatches.length > 0) {
                 res.FaceMatches.forEach((m) => {
                     // console.log(`matched with ${m.Face.ExternalImageId} @ ${m.Face.Confidence}  `)
-                    matches.push(m.Face.ExternalImageId)
+                    matches.push(m?.Face?.ExternalImageId || 'unknown')
                 })
             }
         }
@@ -100,7 +102,7 @@ const findMatch = async (user, person, medias, folder) => {
 }
 
 
-const search = async (user, person, medias) => {
+const search = async (user: IUser, person: IPerson, medias: IMedia[]) => {
     const ts = timeStamp()
     const folder = `${user.id}_${user.name}_${ts}`
 

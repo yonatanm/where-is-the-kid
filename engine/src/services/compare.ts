@@ -1,11 +1,8 @@
 import { rekognitionClient, CompareFacesCommand } from '../utils/aws.js'
+import { IUser, IPerson, IMedia } from '../types'
 
-/* user - the app {id, name},
-* person - the {id, name}
-* medais - [{mimetype, data, metadata:{origFile}}]
-*/
-const findMatch = async (user, person, sourceMedia, targetMedia) => {
-    const matches = []
+const findMatch = async (user: IUser, person: IPerson, sourceMedia: IMedia, targetMedia: IMedia) => {
+    const matches: string[] = []
     const res = await rekognitionClient.send(new CompareFacesCommand({
         SourceImage: {
             Bytes: sourceMedia.data
@@ -19,7 +16,7 @@ const findMatch = async (user, person, sourceMedia, targetMedia) => {
 
     if (res.FaceMatches && res.FaceMatches.length > 0) {
         res.FaceMatches.forEach((m) => {
-            console.log(`matched with ${targetMedia.metadata.origFile} @ ${m.Face.Confidence}  `)
+            console.log(`matched with ${targetMedia.metadata.origFile} @ ${m?.Face?.Confidence}  `)
             matches.push(targetMedia.metadata.origFile)
         })
     }
@@ -29,11 +26,11 @@ const findMatch = async (user, person, sourceMedia, targetMedia) => {
 }
 
 
-const compare = async (user, person, portraitsMedia, gallaryMedia) => {
+const compare = async (user: IUser, person: IPerson, portraitsMedia: IMedia[], gallaryMedia: IMedia[]) => {
 
     let i = 0;
     let j = 0;
-    let matches = []
+    let matches: string[] = []
     for (let p of portraitsMedia) {
         j = 0;
         for (let g of gallaryMedia) {

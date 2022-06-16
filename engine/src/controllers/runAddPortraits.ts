@@ -1,5 +1,5 @@
-import { addPortraits } from '../addPortraits.js'
-import { loadImagesFromFolder, db } from '../utils/utils.js';
+import { addPortraits } from '../services/addPortraits'
+import { loadImagesFromFolder, db } from '../utils/utils';
 import * as path from "path";
 
 (async () => {

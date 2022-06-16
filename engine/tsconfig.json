@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+      "strict": true,
+      "declaration": true,
+      "allowSyntheticDefaultImports": true,
+      "sourceMap": true,
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "target": "ES2019",
+      "lib": ["esnext"],
+      "preserveSymlinks": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "composite": true,
+      "outDir": "dist"
+    },
+    "include": [
+        "src/**/*",
+        "tests/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts"
+    ]
+  }

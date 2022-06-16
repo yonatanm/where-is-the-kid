@@ -1,0 +1,5 @@
+{
+    "verbose": true,
+    "ignore": ["*.test.js"],
+    "delay": "2500"
+  }

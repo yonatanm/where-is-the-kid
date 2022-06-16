@@ -14,7 +14,7 @@ const timeStamp = () => {
 }
 
 
-const loadImagesFromFolder = async (folderPath) => {
+const loadImagesFromFolder = async (folderPath : string) => {
     console.log("loading images from " + folderPath)
     const files = await fs.promises.readdir(folderPath)
     const images = []
