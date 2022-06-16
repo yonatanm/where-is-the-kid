@@ -44,4 +44,5 @@ const compare = async (user: IUser, person: IPerson, portraitsMedia: IMedia[], g
     return matches
 }
 
-export { compare }
+const compareService = { compare }
+export { compareService }

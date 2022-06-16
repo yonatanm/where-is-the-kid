@@ -67,7 +67,7 @@ const indexGallary = async (user: IUser, person: IPerson, medias: IMedia[], fold
         i++
     }
 }
-const findMatch = async (user : IUser, person:IPerson, medias:IMedia[], folder:string) => {
+const findMatch = async (user: IUser, person: IPerson, medias: IMedia[], folder: string) => {
     // aws rekognition search-faces-by-image  --image '{"S3Object":{"Bucket":"dev.portraits","Name":"'$P'"}}' 
     // --collection-id face-collection-gallary --face-match-threshold 70 --region us-east-1 | jq '.FaceMatches[].Face.ExternalImageId' |  tr -d '"' 
     const dirFullPath = `${person.id}_${person.name}`
@@ -115,4 +115,5 @@ const search = async (user: IUser, person: IPerson, medias: IMedia[]) => {
     console.log('we have matches ', r)
 }
 
-export { search }
+const searchService = { search }
+export { searchService }
