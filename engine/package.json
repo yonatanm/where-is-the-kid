@@ -15,6 +15,8 @@
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.109.0",
     "@aws-sdk/client-s3": "^3.109.0",
-    "dotenv": "^16.0.1"
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "nodemon": "^2.0.16"
   }
 }
