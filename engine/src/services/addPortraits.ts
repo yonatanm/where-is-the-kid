@@ -24,5 +24,5 @@ const add = async (user: IUser, person: IPerson, medias: IMedia[]) => {
     }
 }
 
-const addService = {add}
+const addService = { add }
 export { addService }
