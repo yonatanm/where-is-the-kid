@@ -10,9 +10,10 @@ interface IPerson {
 
 interface IMedia {
     mimetype?: string
-    data: any,
+    data: Buffer,
     metadata: {
         origFile: string
+        externalId? : string
     }
 }
 
