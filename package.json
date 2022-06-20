@@ -1,0 +1,19 @@
+{
+  "name": "where-is-the-kid",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yonatanm/where-is-the-kid.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yonatanm/where-is-the-kid/issues"
+  },
+  "homepage": "https://github.com/yonatanm/where-is-the-kid#readme"
+}
