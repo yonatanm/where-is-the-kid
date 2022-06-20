@@ -10,7 +10,7 @@ const ROTEM = '972556605181' //'972555573058'
 
 const waClient = new Client({
     puppeteer: {
-        headless: false,
+        headless: true,
         args: ['--no-sandbox'],
     },
     authStrategy: new LocalAuth(),
