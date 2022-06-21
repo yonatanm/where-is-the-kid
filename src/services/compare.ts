@@ -3,25 +3,30 @@ import { IUser, IPerson, IMedia } from '../types'
 
 const findMatch = async (user: IUser, person: IPerson, sourceMedia: IMedia, targetMedia: IMedia) => {
     const matches: string[] = []
-    const res = await rekognitionClient.send(new CompareFacesCommand({
-        SourceImage: {
-            Bytes: sourceMedia.data
-        },
-        TargetImage: {
-            Bytes: targetMedia.data
-        },
-        SimilarityThreshold: 70,
+    try {
+        const res = await rekognitionClient.send(new CompareFacesCommand({
+            SourceImage: {
+                Bytes: sourceMedia.data
+            },
+            TargetImage: {
+                Bytes: targetMedia.data
+            },
+            SimilarityThreshold: 70,
 
-    }));
+        }));
+        if (res.FaceMatches && res.FaceMatches.length > 0) {
+            res.FaceMatches.forEach((m) => {
+                console.log(`matched with ${targetMedia.metadata.origFile} @ ${m?.Face?.Confidence}  `)
+                matches.push(targetMedia.metadata.origFile)
+            })
+        }
 
-    if (res.FaceMatches && res.FaceMatches.length > 0) {
-        res.FaceMatches.forEach((m) => {
-            console.log(`matched with ${targetMedia.metadata.origFile} @ ${m?.Face?.Confidence}  `)
-            matches.push(targetMedia.metadata.origFile)
-        })
+        return [...new Set(matches)]
     }
-
-    return [...new Set(matches)]
+    catch (ex) {
+        console.error("got error comparing ", ex)
+        return []
+    }
 
 }
 
