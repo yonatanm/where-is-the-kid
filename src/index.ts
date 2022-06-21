@@ -8,7 +8,7 @@ import multer from 'multer'
 
 
 const server = express()
-const port = process.env.APP_PORT
+const port = process.env.PORT || process.env.APP_PORT
 
 
 
