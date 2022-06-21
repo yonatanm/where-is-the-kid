@@ -14,7 +14,7 @@
     "server:build:watch": "npm run server:clean && tsc -w",
     "dev": "npm run server:build:watch | (sleep 3 && nodemon dist/server/index.js)",
     "server:build": "npm run server:clean && tsc -d",
-    "build": "echo @@ in build @@ ; && npm run server:build",
+    "build": "echo @@ in build @@ ; npm run server:build",
     "start": "echo @@ in start @@ ; node dist/src/index.js"
   },
   "author": "",
