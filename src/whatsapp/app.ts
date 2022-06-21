@@ -16,6 +16,7 @@ const waClient = new Client({
     authStrategy: new LocalAuth(),
 });
 
+
 waClient.on("qr", (qr) => {
     console.log('qr is ', qr)
     qrcode.generate(qr, { small: true });
