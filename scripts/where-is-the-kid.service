@@ -4,8 +4,8 @@ Description=where-is-the-kid express server and chatbot
 
 [Service]
 Type=simple
-# RestartSec=10
-#Restart=always
+RestartSec=10
+Restart=always
 
 User=ubuntu
 ExecStart=/home/ubuntu/where-is-the-kid/scripts/run.sh
