@@ -16,7 +16,7 @@
     "server:build": "npm run server:clean && tsc -d",
     "build": "echo @@ in build @@ ; npm run server:build",
     "start": "echo @@ in start @@ ; node dist/src/index.js",
-    "deploy": "cp ~/.awsrc .env"
+    "deploy": "npm i && cp ~/.awsrc .env"
   },
   "author": "yoatanm",
   "license": "ISC",
