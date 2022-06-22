@@ -6,7 +6,6 @@ Description=where-is-the-kid express server and chatbot
 Type=simple
 # RestartSec=10
 #Restart=always
-TimeoutStopUSec=10
 
 User=ubuntu
 ExecStart=/home/ubuntu/where-is-the-kid/scripts/run.sh
