@@ -42,8 +42,8 @@ server.post('/api/compare', upload.fields([{ name: 'gallary' }, { name: 'portrai
 });
 
 server.get('/api/wa/getChats', async (req, res) => {
-    await getChats()
-    res.json("OK")
+    await getChats((req.query?.id||'') as string)
+    res.json("OK22")
     // res.json(await getChats())
     // res.write(await getChats())
 })

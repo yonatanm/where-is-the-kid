@@ -7,7 +7,7 @@ import { IMedia } from '../types';
 
 
 const ROTEM = '972556605181' //'972555573058'
-
+const SHAKHAF = '972545944849'
 const waClient = new Client({
     puppeteer: {
         headless: true,
@@ -63,7 +63,7 @@ waClient.on("message", async (message: WAWebJS.Message,) => {
 
 const getPersonsAndMedia = async (chat: Chat) => {
     const messages = (await chat?.fetchMessages({ limit: 100 }))
-    const repMessages = messages.filter((m) => m.type === 'chat' && m.body && m.body.trim().length > 0 && !m.body.includes('❤️') && m.hasQuotedMsg == true)
+    const repMessages = messages.filter((m) => m.type === 'chat' && m.body && m.body.trim().length > 0 && !m.fromMe && m.hasQuotedMsg == true)
 
     const dict: { name: string, media: IMedia }[] = []
     let i = 0
@@ -84,15 +84,14 @@ const getPersonsAndMedia = async (chat: Chat) => {
 
 const getAllMedias = async (chat: Chat) => {
     const messages: Message[] = (await chat?.fetchMessages({ limit: 20 }))
-    console.log("### messages ", messages.length)// JSON.stringify(messages))
-    const messagesWithMedia = messages.filter(m => m.type === MessageTypes.IMAGE && m.hasMedia)
+    console.log("### messages ", JSON.stringify(messages))
+    const messagesWithMedia = messages.filter(m => m.type === MessageTypes.IMAGE && m.hasMedia && !m.fromMe)
     const gallary: { origMessage: Message, media: IMedia }[] = []
     let i = 0;
     let c = 0;
     console.log("messagesWithMedia length" + messagesWithMedia.length)
     for (let m of messagesWithMedia) {
         console.log("working on " + i)
-        // if (i !== 2) {
         try {
             const mm = await m.downloadMedia()
             const buffer = Buffer.from(mm.data, "base64");
@@ -103,14 +102,21 @@ const getAllMedias = async (chat: Chat) => {
         catch (ex) {
             console.error("got exception ", ex)
         }
-        // }
         i++;
     }
     return gallary
 }
 
-const getChats = async (c?: Chat) => {
-    const chat = c || (await waClient.getChats()).find(c => c.id._serialized === `${ROTEM}@c.us`)
+const getTheChat = async (c?: Chat | string) => {
+    if (typeof c === 'object') return c
+    const chats = await waClient.getChats()
+    const cc = chats.find(ch => ch.id._serialized === `${c}@c.us`)
+    return cc;
+}
+const getChats = async (c?: Chat | string) => {
+    console.log(`c is [${c}]`)
+    let chat = await getTheChat(c)
+    console.log('chat is ', chat)
     if (!chat) return []
 
     console.log('found chat', JSON.stringify(chat.id))
