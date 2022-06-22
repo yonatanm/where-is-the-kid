@@ -5,7 +5,11 @@ import { compareController } from './controllers/compareController'
 import { searchController } from './controllers/searchController'
 import { getChats } from './whatsapp/app'
 import multer from 'multer'
+import { log } from './utils/utils'
 
+
+
+log.info('@@@ here we start @@@@')
 
 const server = express()
 const port = process.env.PORT || process.env.APP_PORT
@@ -45,5 +49,7 @@ server.get('/api/wa/getChats', async (req, res) => {
 })
 
 server.listen(port, async () => {
+    log.info('@@@ listeneing @@@@')
+
     console.log(`Example app listening on port ${port}`)
 })

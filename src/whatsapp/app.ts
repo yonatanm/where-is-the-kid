@@ -19,7 +19,8 @@ const waClient = new Client({
 
 waClient.on("qr", (qr) => {
     console.log('qr is ', qr)
-    qrcode.generate(qr, { small: true });
+    qrcode.generate(qr, { small: true }, (qrcode) => { console.log(`\n${qrcode}`) }
+    );
 });
 
 waClient.on("authenticated", () => {
