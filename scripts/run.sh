@@ -1,3 +1,5 @@
 #! /bin/sh
 cd /home/ubuntu/where-is-the-kid 
-/home/ubuntu/.nvm/versions/node/v16.15.1/bin/npm start &
+export NVM_DIR="/home/ubuntu/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+npm start &
