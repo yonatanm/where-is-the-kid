@@ -37,10 +37,11 @@ waClient.on("message", async (message: WAWebJS.Message,) => {
     console.log("got message !", Object.keys(message))
     // console.log("got message", JSON.stringify(message))
     console.log("got from", message.from)
-    if (message.body === "איפה הילד") {
+    if (message.body?.trim() === "איפה הילד" || message.body?.trim() === "איפה הילד?") {
         const chat = await waClient.getChatById(message.id.remote)
         const resMedia = await getChats(chat)
-
+        await message.react('👍');
+        
         for (let rm of resMedia) {
             if (rm.medias.length === 0) {
                 await message.reply(`לא נמצאו תמונות של ${rm.name}`)
