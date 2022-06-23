@@ -66,7 +66,7 @@ waClient.on("message", async (message: WAWebJS.Message,) => {
 })
 
 const getPersonsAndMedia = async (chat: Chat) => {
-    const messages = (await chat?.fetchMessages({ limit: 100 }))
+    const messages = (await chat?.fetchMessages({ limit: 10 }))
     const repMessages = messages.filter((m) => m.type === 'chat' && m.body && m.body.trim().length > 0 && !m.fromMe && m.hasQuotedMsg == true)
 
     const dict: { name: string, media: IMedia }[] = []
