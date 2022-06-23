@@ -24,4 +24,4 @@ jobs:
       with:
         host: "ubuntu@ec2-54-92-183-40.compute-1.amazonaws.com"
         key: ${{ secrets.KEY }}
-        command: cd where-is-the-kid ; git pull; echo short=${SHORT_SHA}; echo VERSION=${{github.sha}} > version ; . /home/ubuntu/.nvm/nvm.sh ;  npm run deploy
+        command: cd where-is-the-kid ; git pull; echo short=${{env.SHORT_SHA}}; echo VERSION=${{github.sha}} > version ; . /home/ubuntu/.nvm/nvm.sh ;  npm run deploy
