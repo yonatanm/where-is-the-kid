@@ -9,7 +9,7 @@ import { log } from './utils/utils'
 
 
 
-log.info('@@@ here we start @@@@')
+log.info('WE ARE ON THE AIR')
 
 const server = express()
 const port = process.env.PORT || process.env.APP_PORT
@@ -43,7 +43,7 @@ server.post('/api/compare', upload.fields([{ name: 'gallary' }, { name: 'portrai
 
 server.get('/api/wa/getChats', async (req, res) => {
     await getChats((req.query?.id||'') as string)
-    res.json("OK22")
+    res.json("OK 33")
     // res.json(await getChats())
     // res.write(await getChats())
 })
