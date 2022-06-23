@@ -42,4 +42,4 @@ jobs:
           remote: /tmp
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.KEY }}
+          privateKey: ${{ secrets.KEY }}
