@@ -16,11 +16,8 @@ const port = process.env.PORT || process.env.APP_PORT
 
 
 
-server.get('/api/add', async (req, res) => {
-    await addController.add()
-})
-server.get('/api/search', async (req, res) => {
-    await searchController.search()
+server.get('/api/version', async (req, res) => {
+    res.send(process.env.VERSION||'dev')
 })
 
 
