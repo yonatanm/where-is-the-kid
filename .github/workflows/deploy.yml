@@ -14,8 +14,14 @@ jobs:
     name: deploy
     runs-on: ubuntu-latest
     steps:
+    - name: Set outputs
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+    - name: Check outputs
+      run: echo ${{ steps.vars.outputs.sha_short }}
+            
     - name: info
-      run: echo about to git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}} ${GITHUB_SHA::7}
+      run: echo about to git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}} 
 
     - uses: kevin-leptons/ssh_action@v1
       with:
