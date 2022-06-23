@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: info
-      run: echo about to git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}}
+      run: echo about to git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}} ${GITHUB_SHA::7}
 
     - uses: kevin-leptons/ssh_action@v1
       with:

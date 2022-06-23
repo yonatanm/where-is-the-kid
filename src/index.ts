@@ -7,9 +7,9 @@ import { getChats } from './whatsapp/app'
 import multer from 'multer'
 import { log } from './utils/utils'
 
+const version = process.env.VERSION || 'dev'
 
-
-log.info('WE ARE ON THE AIR')
+log.info(` we are on the air with version ${version}`)
 
 const server = express()
 const port = process.env.PORT || process.env.APP_PORT
@@ -17,7 +17,7 @@ const port = process.env.PORT || process.env.APP_PORT
 
 
 server.get('/api/version', async (req, res) => {
-    res.send(process.env.VERSION||'dev')
+    res.send(version)
 })
 
 
@@ -39,7 +39,7 @@ server.post('/api/compare', upload.fields([{ name: 'gallary' }, { name: 'portrai
 });
 
 server.get('/api/wa/getChats', async (req, res) => {
-    await getChats((req.query?.id||'') as string)
+    await getChats((req.query?.id || '') as string)
     res.json("OK 33")
     // res.json(await getChats())
     // res.write(await getChats())
