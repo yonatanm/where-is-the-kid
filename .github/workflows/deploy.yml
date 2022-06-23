@@ -20,12 +20,11 @@ jobs:
     steps:
     - name: Run a one-line script
       run: echo about to git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}}
-      
+
     - name: Setup GitHub SSH
       uses: MrSquaare/ssh-setup-action@v1
       with:
-        host: ${{ secrets.HOST }}
-        user: ${{ secrets.USER }} 
+        host: "ubuntu@ec2-54-92-183-40.compute-1.amazonaws.com"
         private-key: ${{ secrets.KEY }}
 #        private-key-name: github
     - name: Clone GitHub repository
