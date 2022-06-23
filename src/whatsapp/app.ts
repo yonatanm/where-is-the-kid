@@ -83,8 +83,8 @@ const getPersonsAndMedia = async (chat: Chat) => {
 }
 
 const getAllMedias = async (chat: Chat) => {
-    const messages: Message[] = (await chat?.fetchMessages({ limit: 20 }))
-    console.log("### messages ", messages.length)// JSON.stringify(messages))
+    const messages: Message[] = (await chat?.fetchMessages({ limit: 2 }))
+    console.log("### messages ", JSON.stringify(messages))
     const messagesWithMedia = messages.filter(m => m.type === MessageTypes.IMAGE && m.hasMedia && !m.fromMe)
     const gallary: { origMessage: Message, media: IMedia }[] = []
     let i = 0;
