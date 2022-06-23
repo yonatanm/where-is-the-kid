@@ -20,7 +20,7 @@ jobs:
       run: echo short is ${SHORT_SHA}
             
     - name: info
-      run: echo about to git pull  ${SHORT_SHA} ${{github.sha}}
+      run: echo about to git pull ${{github.sha}}
 
     - uses: kevin-leptons/ssh_action@v1
       with:
