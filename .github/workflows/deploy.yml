@@ -25,7 +25,7 @@ jobs:
         private-key: ${{ secrets.KEY }}
 #        private-key-name: github
     - name: Clone GitHub repository
-      run: git clone git@github.com:yonatanm/where-is-the-kid.git ${{github.sha}}
+      run: git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}}
 # # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 # jobs:
 #   # This workflow contains a single job called "build"
