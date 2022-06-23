@@ -11,7 +11,7 @@
     "add": "node dist/src/controllers/runAddPortraits.js",
     "search": "node dist/src/controllers/runSearch.js",
     "compare": "node dist/src/controllers/runCompare.js",
-    "test": "echo @@ in test @@ ;  npm run build && jest --passWithNoTests",
+    "test": "echo @@ in test @@ ;  npm run build && jest \--passWithNoTests",
     "server:clean": "rm -rf dist/*",
     "server:build:watch": "npm run server:clean && tsc -w",
     "dev": "npm run server:build:watch | (sleep 3 && nodemon dist/server/index.js)",
