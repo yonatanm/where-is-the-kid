@@ -32,7 +32,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
-          echo Add other actions to build, ${{ secrets.HOST }}  ${{ secrets.SSH_USER }}
+          echo Add other actions to build ${{ github.sha }}
           echo test, and deploy your project.
 
       - name: copy file via ssh password
@@ -41,7 +41,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USER }}
           key : ${{ secrets.KEY }}
-          source: "package.json"
+          source: "src"
           target: "/tmp"
         
 #       - name: Copy folder content recursively to remote
