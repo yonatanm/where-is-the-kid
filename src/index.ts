@@ -1,9 +1,7 @@
 import express from 'express'
 import 'dotenv/config'
-import { addController } from './controllers/addController'
 import { compareController } from './controllers/compareController'
-import { searchController } from './controllers/searchController'
-import { getChats } from './whatsapp/app'
+import { getChats, getStatus } from './whatsapp/app'
 import multer from 'multer'
 import { log } from './utils/utils'
 
@@ -14,12 +12,13 @@ log.info(` we are on the air with version ${version}`)
 const server = express()
 const port = process.env.PORT || process.env.APP_PORT
 
-
-
 server.get('/api/version', async (req, res) => {
     res.send(version)
 })
 
+server.get('/api/status', async (req, res) => {
+    res.json(await getStatus())
+})
 
 const upload = multer();
 
@@ -41,8 +40,6 @@ server.post('/api/compare', upload.fields([{ name: 'gallary' }, { name: 'portrai
 server.get('/api/wa/getChats', async (req, res) => {
     await getChats((req.query?.id || '') as string)
     res.json("OK 33")
-    // res.json(await getChats())
-    // res.write(await getChats())
 })
 
 server.listen(port, async () => {

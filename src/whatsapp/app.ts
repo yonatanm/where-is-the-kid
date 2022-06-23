@@ -5,7 +5,7 @@ import { compareService } from '../services/compare'
 import { db } from '../utils/utils'
 import { IMedia } from '../types';
 
-
+const BOT_NUM = '972546519551'
 const ROTEM = '972556605181' //'972555573058'
 const SHAKHAF = '972545944849'
 const waClient = new Client({
@@ -22,6 +22,7 @@ waClient.on("qr", (qr) => {
     qrcode.generate(qr, { small: true }, (qrcode) => { console.log(`\n${qrcode}`) }
     );
 });
+
 
 waClient.on("authenticated", () => {
     console.log("AUTHENTICATED");
@@ -107,6 +108,16 @@ const getAllMedias = async (chat: Chat) => {
     return gallary
 }
 
+const getStatus = async () => {
+    let reg = false
+    try {
+        reg = await waClient.isRegisteredUser(`${BOT_NUM}@c.us`)
+    } catch (ex) {
+        console.info("failed to check is MY_NUM is registered, so I guess we are not connected")
+    }
+    return { connected: reg }
+}
+
 const getTheChat = async (c?: Chat | string) => {
     if (typeof c === 'object') return c
     const chats = await waClient.getChats()
@@ -180,5 +191,5 @@ console.log('waClient initialize')
 waClient.initialize().then(() => { console.log('after init') })
 
 
-export { getChats }
+export { getChats, getStatus }
 
