@@ -21,14 +21,20 @@ jobs:
     - name: Run a one-line script
       run: echo about to git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}}
 
-    - name: Setup GitHub SSH
-      uses: MrSquaare/ssh-setup-action@v1
+    - uses: kevin-leptons/ssh_action@v1
       with:
         host: "ubuntu@ec2-54-92-183-40.compute-1.amazonaws.com"
-        private-key: ${{ secrets.KEY }}
-        private-key-name: "timkey.pem"
-    - name: Clone GitHub repository
-      run: git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}}
+        key: ${{ secrets.KEY }}
+        command: git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}}
+
+    # - name: Setup GitHub SSH
+    #   uses: MrSquaare/ssh-setup-action@v1
+    #   with:
+    #     host: "ubuntu@ec2-54-92-183-40.compute-1.amazonaws.com"
+    #     private-key: ${{ secrets.KEY }}
+    #     private-key-name: "timkey.pem"
+    # - name: Clone GitHub repository
+    #   run: git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}}
 # # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 # jobs:
 #   # This workflow contains a single job called "build"
