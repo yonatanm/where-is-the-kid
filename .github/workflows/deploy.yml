@@ -19,7 +19,7 @@ jobs:
     - name: Check outputs
       run: echo short is ${SHORT_SHA}            
     - name: info
-      run: echo about to git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}} 
+      run: echo about to git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}} ${SHORT_SHA}
     - uses: kevin-leptons/ssh_action@v1
       with:
         host: "ubuntu@ec2-54-92-183-40.compute-1.amazonaws.com"
