@@ -20,7 +20,7 @@ jobs:
       run: echo short is ${SHORT_SHA}
             
     - name: info
-      run: echo about to git clone https://github.com/yonatanm/where-is-the-kid.git ${{github.sha}}  ${SHORT_SHA} ${{SHORT_SHA}}
+      run: echo about to git pull  ${SHORT_SHA} ${{github.sha}}
 
     - uses: kevin-leptons/ssh_action@v1
       with:
