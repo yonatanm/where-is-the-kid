@@ -6,6 +6,7 @@
   },
   "version": "1.0.0",
   "description": "",
+  
   "scripts": {
     "add": "node dist/src/controllers/runAddPortraits.js",
     "search": "node dist/src/controllers/runSearch.js",
