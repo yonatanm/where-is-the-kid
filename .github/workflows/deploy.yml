@@ -25,7 +25,7 @@ jobs:
       with:
         host: "ubuntu@ec2-54-92-183-40.compute-1.amazonaws.com"
         key: ${{ secrets.KEY }}
-        command: cd where-is-the-kid ; git pull; git deploy
+        command: cd where-is-the-kid ; git pull; echo ${{github.sha}} > version ; npm run deploy
 
     # - name: Setup GitHub SSH
     #   uses: MrSquaare/ssh-setup-action@v1
