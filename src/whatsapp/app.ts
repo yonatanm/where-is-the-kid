@@ -1,9 +1,10 @@
 import * as qrcode from 'qrcode-terminal'
 import WAWebJS, { Client, LocalAuth, Message, MessageMedia, Chat, ChatTypes, MessageTypes } from 'whatsapp-web.js'
-import * as fs from "fs";
 import { compareService } from '../services/compare'
 import { db } from '../utils/utils'
 import { IMedia } from '../types';
+import fetch from 'node-fetch'
+
 
 const BOT_NUM = '972546519551'
 const ROTEM = '972556605181' //'972555573058'
@@ -36,15 +37,15 @@ waClient.on("ready", () => {
 
 
 waClient.on("message", async (message: WAWebJS.Message,) => {
-    console.log("got message !", Object.keys(message))
-    // console.log("got message", JSON.stringify(message))
     console.log("got from", message.from)
+
+
     if (message.body?.trim() === "איפה הילד" || message.body?.trim() === "איפה הילד?") {
         const chat = await waClient.getChatById(message.id.remote)
-        
+
         const resMedia = await getChats(chat)
         await message.react('👍');
-        
+
         for (let rm of resMedia) {
             if (rm.medias.length === 0) {
                 await message.reply(`לא נמצאו תמונות של ${rm.name}`)
@@ -128,8 +129,18 @@ const getTheChat = async (c?: Chat | string) => {
     const cc = chats.find(ch => ch.id._serialized === `${c}@c.us`)
     return cc;
 }
+
+
 const getChats = async (c?: Chat | string) => {
     console.log(`c is [${c}]`)
+    if (typeof c === 'string') {
+        const pic = await waClient.getProfilePicUrl(c)
+        console.log(`pic url is ${pic}`)
+        const response = await fetch(pic);
+        const blob = await response.arrayBuffer();
+        const b64 = `data:${response.headers.get('content-type') || 'image/jpeg'};base64,${Buffer.from(blob).toString("base64")}`
+    }
+
     let chat = await getTheChat(c)
     console.log('chat is ', chat)
     if (!chat) return []
