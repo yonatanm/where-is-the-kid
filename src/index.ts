@@ -7,7 +7,7 @@ import { log } from './utils/utils'
 
 const version = process.env.VERSION || 'dev'
 
-log.info(` we are on the air with version ${version}`)
+log.info(`we are on the air with version: ${version}`)
 
 const server = express()
 const port = process.env.PORT || process.env.APP_PORT

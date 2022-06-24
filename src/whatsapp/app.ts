@@ -10,7 +10,8 @@ const ROTEM = '972556605181' //'972555573058'
 const SHAKHAF = '972545944849'
 const waClient = new Client({
     puppeteer: {
-        headless: true,
+        // headless: !true,
+        // executablePath: '/snap/bin/firefox',
         args: ['--no-sandbox'],
     },
     authStrategy: new LocalAuth(),
