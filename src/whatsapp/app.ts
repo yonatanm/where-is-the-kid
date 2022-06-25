@@ -1,5 +1,5 @@
 import * as qrcode from 'qrcode-terminal'
-import WAWebJS, { GroupParticipant, Client, LocalAuth, Message, MessageMedia, Chat, ChatTypes, MessageTypes, GroupChat } from 'whatsapp-web.js'
+import WAWebJS, { ChatId, GroupParticipant, Client, LocalAuth, Message, MessageMedia, Chat, ChatTypes, MessageTypes, GroupChat } from 'whatsapp-web.js'
 import { compareService } from '../services/compare'
 import { imageUrlToBase64, db } from '../utils/utils'
 import { IMedia, } from '../types';
@@ -24,7 +24,17 @@ const waClient = new Client({
     puppeteer: {
         // headless: !true,
         // executablePath: '/snap/bin/firefox',
-        args: ['--no-sandbox'],
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+        ],
+        headless: true
     },
     authStrategy: new LocalAuth(),
 });
@@ -47,8 +57,16 @@ waClient.on("ready", () => {
 
 const getFaceGroupsForContactId = async (participantId: string): Promise<string[]> => {
     const db = new Map()
-    db.set(ITAMAR_ID, [WITK_1_ID, IMAABA_ID])
-    return db.get(participantId) || []
+    const commonGroupsIds: string[] = (await waClient.getCommonGroups(participantId)).map(g=>g._serialized)
+    const ids :string[] = []
+    for (let gid of commonGroupsIds) {
+        const group = await waClient.getChatById(gid) as GroupChat
+        if (group.owner && group.owner._serialized === BOT_ID) // we have a face group
+        {
+            ids.push(gid)
+        }
+    }
+    return ids;
 }
 
 const getFaceGroups = async () => {
@@ -80,7 +98,10 @@ waClient.on("message", async (message: WAWebJS.Message,) => {
         console.log('currenlty we dont support direct messages')
     }
     const groupChat: GroupChat = chat as GroupChat
-    if (groupChat.id._serialized !== EXPERMIMENTS_ID && groupChat.owner && groupChat.owner._serialized === BOT_ID) {
+    console.log("got a message to group "+groupChat.name+" "+groupChat.id._serialized)
+
+    //ignore messages to the group I created unless it start
+    if (groupChat.name.toLocaleLowerCase().includes('witk') && groupChat.owner && groupChat.owner._serialized === BOT_ID) {
         console.log('currenly we dont support messages to our group')
         return
     }
@@ -92,11 +113,20 @@ waClient.on("message", async (message: WAWebJS.Message,) => {
     // so we are in a group not created by the bot and got a message with media.
     // we need to find all contacts that are our users
 
-    await orchestrate(groupChat, message)
+    try {
+        await orchestrate(groupChat, message)
+    }
+    catch(ex) {
+        console.error("got error orchestrating", ex)
+    }
 })
 
 const orchestrate = async (groupChat: GroupChat, message: Message) => {
-    const groupParticipants = groupChat.participants;
+    if (!groupChat.participants || groupChat.participants.length===0) {
+        console.log("no participants in this gropu, skip the group")
+        return
+    }
+    const groupParticipants = groupChat.participants.filter(p => p.id._serialized !== BOT_ID);
     console.log(`groupParticipants ${groupParticipants.map(p => p.id._serialized)}`)
 
     const faceGroups = await getFaceGroupsForParticipants(groupParticipants);
