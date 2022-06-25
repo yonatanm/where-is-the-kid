@@ -133,7 +133,9 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
     console.log("faceGroups ", faceGroups)
 
     for (let fg of faceGroups) {
-        console.log(`working on face group ${fg}`)
+        const groupChat = (await waClient.getChatById(fg))as GroupChat
+
+        console.log(`working on face group ${groupChat.name}`)
         const faceUrl = await waClient.getProfilePicUrl(fg)
         if (!faceUrl) {
             console.log('not portraitUrl, maybe it is the wrong group?')
@@ -153,7 +155,7 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
             console.log('there was no match')
             continue
         }
-        console.log(`BINGO ! we have a match ${fg} ${JSON.stringify(resMedia)}`)
+        console.log(`BINGO ! we have a match to ${groupChat.name}`)
         await message.forward(fg)
     }
 }
