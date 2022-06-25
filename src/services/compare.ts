@@ -2,7 +2,6 @@ import { rekognitionClient, CompareFacesCommand } from '../utils/aws.js'
 import { IUser, IPerson, IMedia } from '../types'
 
 const findMatch = async (user: IUser, person: IPerson, sourceMedia: IMedia, targetMedia: IMedia) => {
-    const matches: string[] = []
     try {
         const res = await rekognitionClient.send(new CompareFacesCommand({
             SourceImage: {
@@ -13,39 +12,32 @@ const findMatch = async (user: IUser, person: IPerson, sourceMedia: IMedia, targ
             },
             SimilarityThreshold: 70,
 
+
         }));
         if (res.FaceMatches && res.FaceMatches.length > 0) {
-            res.FaceMatches.forEach((m) => {
-                console.log(`matched with ${targetMedia.metadata.origFile} @ ${m?.Face?.Confidence}  `)
-                matches.push(targetMedia.metadata.origFile)
-            })
+            return true
         }
-
-        return [...new Set(matches)]
+        return false;
     }
     catch (ex) {
         console.error("got error comparing, next")
-        return []
+        return false
     }
-
 }
 
 
-const compare = async (user: IUser, person: IPerson, portraitsMedia: IMedia[], gallaryMedia: IMedia[]) => {
+const compare = async (user: IUser, person: IPerson, portraitsMedia: IMedia, gallaryMedia: IMedia[]) => {
 
-    let i = 0;
-    let j = 0;
     let matches: string[] = []
-    for (let p of portraitsMedia) {
-        j = 0;
-        for (let g of gallaryMedia) {
-            console.log(` comparing with ${p.metadata.origFile} and ${g.metadata.origFile}`)
-            matches = matches.concat(await findMatch(user, person, p, g))
+    let i = 0
+    for (let g of gallaryMedia) {
+        console.log(` comparing with ${portraitsMedia.metadata.origFile} and ${g.metadata.origFile}`)
+        const isThereMatch = await findMatch(user, person, portraitsMedia, g)
+        if (isThereMatch) {
+            matches.push(g.metadata.externalId || '__' + i + '___')
         }
-        i++
     }
-    matches = [...new Set(matches)];
-    return matches
+    return matches;
 }
 
 const compareService = { compare }

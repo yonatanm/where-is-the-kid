@@ -3,7 +3,6 @@ import WAWebJS, { GroupParticipant, Client, LocalAuth, Message, MessageMedia, Ch
 import { compareService } from '../services/compare'
 import { imageUrlToBase64, db } from '../utils/utils'
 import { IMedia, } from '../types';
-import { GetTextDetectionCommand } from '@aws-sdk/client-rekognition';
 
 
 const toContactId = (num: string) => `${num}@c.us`
@@ -120,11 +119,11 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
         const faceImageAsBase64 = await imageUrlToBase64(faceUrl)
         console.log("got the base64 of the face ", faceImageAsBase64.substring(0, 10))
         const resMedia = await invokeComparison({ faceImageAsBase64, message, msgMedia, groupId: groupChat.id._serialized })
-        if (!resMedia) {
+        if (!resMedia || resMedia.length === 0) {
             console.log('there was no match')
             continue
         }
-        console.log('BINGO ! we have a match', fg)
+        console.log(`BINGO ! we have a match ${fg} ${JSON.stringify(resMedia)}`)
         await message.forward(fg)
     }
 }
@@ -167,18 +166,16 @@ const simulate = async () => {
 }
 
 const invokeComparison = async ({ faceImageAsBase64, message, msgMedia, groupId }: { faceImageAsBase64: string, message: Message, msgMedia: MessageMedia, groupId: string }) => {
-
-    let res: { name: string, matches: string[] }[] = []
     const portrait: IMedia = {
         data: Buffer.from(faceImageAsBase64, "base64"),
         metadata: { origFile: groupId, externalId: groupId }
     }
     const gallary: IMedia[] = [{
         data: Buffer.from(msgMedia.data, "base64"),
-        metadata: { origFile: 'origFile', externalId: message.mediaKey || 'mediaKey' }
+        metadata: { origFile: message.mediaKey || 'origFile', externalId: message.mediaKey || 'mediaKey' }
     }]
     const compareRes: string[] = await compareService.compare(db.users.yonatan, { id: 'xyz', name: 'xyz' },
-        [portrait], gallary);
+        portrait, gallary);
     return compareRes
 }
 

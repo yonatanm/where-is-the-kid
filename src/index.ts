@@ -1,6 +1,5 @@
 import express from 'express'
 import 'dotenv/config'
-import { compareController } from './controllers/compareController'
 import { simulate, getFaceGroups, getStatus } from './whatsapp/app'
 import multer from 'multer'
 import { log } from './utils/utils'
@@ -21,21 +20,6 @@ server.get('/api/status', async (req, res) => {
 })
 
 const upload = multer();
-
-server.post('/api/compare', upload.fields([{ name: 'gallary' }, { name: 'portraits' }]), async (req, res) => {
-    const formData = req.body;
-
-    console.log('form data: ', formData.k1);
-    console.log('form files: ', req?.files);
-
-    ((req?.files as any).portraits as any[]).forEach((f, i) => {
-        const attachment = f.buffer as Buffer
-        console.log('portrait ' + i, f)
-    });
-
-    res.sendStatus(200);
-    await compareController.compare(req.files, formData)
-});
 
 server.get('/api/wa/getFaceGroups', async (req, res) => {
     res.json(await getFaceGroups())
