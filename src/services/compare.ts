@@ -24,7 +24,7 @@ const findMatch = async (user: IUser, person: IPerson, sourceMedia: IMedia, targ
         return [...new Set(matches)]
     }
     catch (ex) {
-        console.error("got error comparing ", ex)
+        console.error("got error comparing, next")
         return []
     }
 
@@ -45,7 +45,6 @@ const compare = async (user: IUser, person: IPerson, portraitsMedia: IMedia[], g
         i++
     }
     matches = [...new Set(matches)];
-    console.log("MATCHES ", matches)
     return matches
 }
 

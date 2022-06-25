@@ -1,14 +1,26 @@
 import * as qrcode from 'qrcode-terminal'
-import WAWebJS, { Client, LocalAuth, Message, MessageMedia, Chat, ChatTypes, MessageTypes } from 'whatsapp-web.js'
+import WAWebJS, { GroupParticipant, Client, LocalAuth, Message, MessageMedia, Chat, ChatTypes, MessageTypes, GroupChat } from 'whatsapp-web.js'
 import { compareService } from '../services/compare'
-import { db } from '../utils/utils'
-import { IMedia } from '../types';
-import fetch from 'node-fetch'
+import { imageUrlToBase64, db } from '../utils/utils'
+import { IMedia, } from '../types';
+import { GetTextDetectionCommand } from '@aws-sdk/client-rekognition';
 
 
-const BOT_NUM = '972546519551'
-const ROTEM = '972556605181' //'972555573058'
-const SHAKHAF = '972545944849'
+const toContactId = (num: string) => `${num}@c.us`
+const toGroupId = (num: string) => `${num}@g.us`
+
+//groups
+const IMAABA_ID = toGroupId("972546519551-1515593791")
+const EXPERMIMENTS_ID = toGroupId("120363023106759216")
+const WITK_1_ID = toGroupId("120363043577969853")
+const WHEREISTEKID = toGroupId("120363042389141612")
+
+
+//contacts
+const BOT_ID = toContactId('972546519551')
+const ITAMAR_ID = toContactId('972556605181')
+const SHAKHAF_ID = toContactId('972545944849')
+
 const waClient = new Client({
     puppeteer: {
         // headless: !true,
@@ -34,177 +46,146 @@ waClient.on("ready", () => {
     console.log('Client is ready!');
 });
 
+const getFaceGroupsForContactId = async (participantId: string): Promise<string[]> => {
+    const db = new Map()
+    db.set(ITAMAR_ID, [WITK_1_ID, IMAABA_ID])
+    return db.get(participantId) || []
+}
+
+const getFaceGroups = async () => {
+    const chats = await waClient.getChats()
+    console.log("\n" + JSON.stringify(chats.filter(c => c.isGroup && c)
+        .filter(c => !c.isMuted && !c.archived)
+        .map(c => ((c as unknown) as GroupChat)).filter(g => g.owner && g.owner._serialized === BOT_ID)
+    ))
+    return []
+
+}
+
+const getFaceGroupsForParticipants = async (participants: GroupParticipant[]) => {
+    let allFacegroups: string[] = []
+    for (let gp of participants) {
+        const participantId = gp.id._serialized
+        if (participantId === BOT_ID) { continue; }
+        const faceGroups = await getFaceGroupsForContactId(participantId)
+        faceGroups.forEach(fg => allFacegroups.push(fg))
+    }
+    return [...new Set(allFacegroups)]
+}
 
 
 waClient.on("message", async (message: WAWebJS.Message,) => {
-    console.log("got from", message.from)
+    const chat = await message.getChat()
 
-
-    if (message.body?.trim() === "איפה הילד" || message.body?.trim() === "איפה הילד?") {
-        const chat = await waClient.getChatById(message.id.remote)
-
-        const resMedia = await getChats(chat)
-        await message.react('👍');
-
-        for (let rm of resMedia) {
-            if (rm.medias.length === 0) {
-                await message.reply(`לא נמצאו תמונות של ${rm.name}`)
-            } else {
-                if (rm.medias.length === 1) {
-                    await message.reply(`נמצאה תמונה אחת של ${rm.name}`)
-                }
-                await message.reply(`נמצאו ${rm.medias.length} תמונות של ${rm.name}`)
-                for (let m of rm.medias) {
-                    const media = await new MessageMedia(m.media.mimetype || "image/jpeg", m.media.data.toString('base64'), "image.jpg");
-
-                    // await waClient.sendMessage(message.id.remote, '', {caption: `❤️${rm.name}❤️`} )
-                    await waClient.sendMessage(message.id.remote, `❤️${rm.name}❤️`, { media: media })
-                }
-            }
-        }
-
-
+    if (!chat.isGroup) {
+        console.log('currenlty we dont support direct messages')
     }
+    const groupChat: GroupChat = chat as GroupChat
+    if (groupChat.id._serialized !== EXPERMIMENTS_ID && groupChat.owner && groupChat.owner._serialized === BOT_ID) {
+        console.log('currenly we dont support messages to our group')
+        return
+    }
+    if (!message.hasMedia) {
+        console.log('this message has no media')
+        return
+    }
+    console.log('we got a message with media, we might have to do something')
+    // so we are in a group not created by the bot and got a message with media.
+    // we need to find all contacts that are our users
+
+    await orchestrate(groupChat, message)
 })
 
-const getPersonsAndMedia = async (chat: Chat) => {
-    const messages = (await chat?.fetchMessages({ limit: 10 }))
-    const repMessages = messages.filter((m) => m.type === 'chat' && m.body && m.body.trim().length > 0 && !m.fromMe && m.hasQuotedMsg == true)
+const orchestrate = async (groupChat: GroupChat, message: Message) => {
+    const groupParticipants = groupChat.participants;
+    console.log(`groupParticipants ${groupParticipants.map(p => p.id._serialized)}`)
 
-    const dict: { name: string, media: IMedia }[] = []
-    let i = 0
-    for (let m of repMessages) {
-        const mediaMessage = await m.getQuotedMessage()
-        if (mediaMessage.type !== MessageTypes.IMAGE) continue
-        if (!mediaMessage.hasMedia) continue
-        const mm = await mediaMessage.downloadMedia()
+    const faceGroups = await getFaceGroupsForParticipants(groupParticipants);
+    console.log("faceGroups ", faceGroups)
 
-        const buffer = Buffer.from(mm.data, "base64");
-        dict.push({ name: m.body.trim(), media: { data: buffer, mimetype: mm.mimetype, metadata: { origFile: mm.filename || '_' + i, externalId: mediaMessage.mediaKey || '' + i } } })
-        i++;
-    }
-
-
-    return dict
-}
-
-const getAllMedias = async (chat: Chat) => {
-    const messages: Message[] = (await chat?.fetchMessages({ limit: 10 }))
-    console.log("### messages ", messages)
-    const messagesWithMedia = messages.filter(m => m.type === MessageTypes.IMAGE && m.hasMedia && !m.fromMe)
-    const gallary: { origMessage: Message, media: IMedia }[] = []
-    let i = 0;
-    let c = 0;
-    console.log("messagesWithMedia length" + messagesWithMedia.length)
-    for (let m of messagesWithMedia) {
-        console.log("working on " + i)
-        try {
-            const mm = await m.downloadMedia()
-            const buffer = Buffer.from(mm.data, "base64");
-
-            gallary.push({ origMessage: m, media: { data: buffer, mimetype: mm.mimetype, metadata: { origFile: mm.filename || '_' + c, externalId: m.mediaKey || '_' + c } } })
-            c++;
+    for (let fg of faceGroups) {
+        console.log(`working on face group ${fg}`)
+        const faceUrl = await waClient.getProfilePicUrl(fg)
+        if (!faceUrl) {
+            console.log('not portraitUrl, maybe it is the wrong group?')
+            continue
         }
-        catch (ex) {
-            console.error("got exception ", ex)
+        console.log("we have a faceUrl", faceUrl)
+        const msgMedia = await message.downloadMedia()
+        if (!msgMedia) {
+            console.log("couldn't donwload the media, skip it")
+            continue;
         }
-        i++;
+
+        const faceImageAsBase64 = await imageUrlToBase64(faceUrl)
+        console.log("got the base64 of the face ", faceImageAsBase64.substring(0, 10))
+        const resMedia = await invokeComparison({ faceImageAsBase64, message, msgMedia, groupId: groupChat.id._serialized })
+        if (!resMedia) {
+            console.log('there was no match')
+            continue
+        }
+        console.log('BINGO ! we have a match', fg)
+        await message.forward(fg)
     }
-    return gallary
 }
 
 const getStatus = async () => {
     let reg = false
     try {
-        reg = await waClient.isRegisteredUser(`${BOT_NUM}@c.us`)
+        reg = await waClient.isRegisteredUser(BOT_ID)
     } catch (ex) {
         console.info("failed to check is MY_NUM is registered, so I guess we are not connected")
     }
     return { connected: reg }
 }
 
-const getTheChat = async (c?: Chat | string) => {
-    if (typeof c === 'object') return c
-    const chats = await waClient.getChats()
-    const cc = chats.find(ch => ch.id._serialized === `${c}@c.us`)
-    return cc;
-}
-
-
-const getChats = async (c?: Chat | string) => {
-    console.log(`c is [${c}]`)
-    if (typeof c === 'string') {
-        const pic = await waClient.getProfilePicUrl(c)
-        console.log(`pic url is ${pic}`)
-        const response = await fetch(pic);
-        const blob = await response.arrayBuffer();
-        const b64 = `data:${response.headers.get('content-type') || 'image/jpeg'};base64,${Buffer.from(blob).toString("base64")}`
-    }
-
-    let chat = await getTheChat(c)
-    console.log('chat is ', chat)
-    if (!chat) return []
-
-    console.log('found chat', JSON.stringify(chat.id))
-
-    let c1
-    try {
-        c1 = await waClient.getChatById(chat.id._serialized)
-    } catch (ex) {
-        console.error("error", ex)
-    }
-    console.log("c1", c1)
-
-    const dict = await getPersonsAndMedia(chat)
-    const names = dict.map(x => x.name)
-
-    console.log("names is " + names)
-    console.log("dict ", dict.map(x => x.media.metadata.origFile))
-    console.log("dict length" + dict.length)
-    const uniqueNames = [...new Set(names)]
-    console.log("nauniqueNamesmes is " + uniqueNames)
-    const allmedias = await getAllMedias(chat)
-    console.log("allmedias ", allmedias.map(x => x.media.metadata.origFile))
-    console.log("allmedias length " + allmedias.length)
-    const gallary = allmedias.filter(am => dict.every(d => d.media.metadata.externalId !== am.media.metadata.externalId))
-    console.log("gallary ", gallary.map(x => x.media.metadata.origFile))
-    console.log("gallary length " + gallary.length)
-    let res: { name: string, matches: string[] }[] = []
-    for (let n of uniqueNames) {
-
-        const portraits = dict.filter(x => x.name === n).map(x => x.media)
-        console.log(`for name ${n} about to compart portriats ${portraits.length} in galary ${gallary.length}`)
-
-        const compareRes: string[] = await compareService.compare(db.users.yonatan, { id: n, name: n },
-            portraits, gallary.map(x => x.media));
-
-        res.push({ name: n, matches: compareRes })
-    }
-
-    console.log('res ', res)
-
-    const resMedia = res.map(x => {
-        return {
-            name: x.name,
-            matches: x.matches,
-            medias: allmedias.filter(am => x.matches.some(r => r === am.media.metadata.origFile))
+const simulate = async () => {
+    const x = (await waClient.getChats()).filter(c => c.isGroup).map(c => ((c as unknown) as GroupChat))
+    // const y = x.filter(gc => gc.owner && gc.owner._serialized === BOT_ID)
+    // console.log("\n" + JSON.stringify(y))
+    // return
+    const gr = x.filter(gc => gc.id._serialized === EXPERMIMENTS_ID)[0]
+    const groupId = gr.id._serialized
+    console.log(`simulating group ${gr.name} ${groupId}`)
+    let i = 0;
+    let messages, msg
+    while (true) {
+        if (i >= 10) break;
+        messages = await gr.fetchMessages({ limit: 1 })
+        if (messages && messages.length > 0 && messages[messages.length - 1].hasMedia) {
+            msg = messages[messages.length - 1];
+            break
         }
-    })
-
-
-    console.log("resMedia len " + resMedia.length)
-
-
-    return resMedia;
-
-    // const messages = (await chat?.fetchMessages({ limit: 2 }))
-    // console.log('got message len', messages?.length)
-    // return messages || []
+        i++;
+    }
+    if (!msg) {
+        console.log('could find a message with media')
+        return
+    }
+    console.log(`found a msg from ${msg.timestamp} to simulate ... lets start`)
+    await orchestrate(gr, msg)
 }
+
+const invokeComparison = async ({ faceImageAsBase64, message, msgMedia, groupId }: { faceImageAsBase64: string, message: Message, msgMedia: MessageMedia, groupId: string }) => {
+
+    let res: { name: string, matches: string[] }[] = []
+    const portrait: IMedia = {
+        data: Buffer.from(faceImageAsBase64, "base64"),
+        metadata: { origFile: groupId, externalId: groupId }
+    }
+    const gallary: IMedia[] = [{
+        data: Buffer.from(msgMedia.data, "base64"),
+        metadata: { origFile: 'origFile', externalId: message.mediaKey || 'mediaKey' }
+    }]
+    const compareRes: string[] = await compareService.compare(db.users.yonatan, { id: 'xyz', name: 'xyz' },
+        [portrait], gallary);
+    return compareRes
+}
+
 
 console.log('waClient initialize')
 waClient.initialize().then(() => { console.log('after init') })
 
 
-export { getChats, getStatus }
+export { getFaceGroups, simulate, getStatus }
 

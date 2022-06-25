@@ -1,0 +1,13 @@
+2022-06-25 08:32:26 ERROR got error comparing Request has invalid parameters
+{"name":"InvalidParameterException","$fault":"client","$metadata":{"httpStatusCode":400,"requestId":"4a5a2898-0b9f-4903-8db2-7dfa90ec5cb2","attempts":1,"totalRetryDelay":0},"Code":"InvalidParameterException","__type":"InvalidParameterException","message":"Request has invalid parameters"}
+InvalidParameterException: Request has invalid parameters
+    at deserializeAws_json1_1InvalidParameterExceptionResponse (/home/yonatan/src/where-is-the-kid/node_modules/@aws-sdk/client-rekognition/dist-cjs/protocols/Aws_json1_1.js:3954:23)
+    at deserializeAws_json1_1CompareFacesCommandError (/home/yonatan/src/where-is-the-kid/node_modules/@aws-sdk/client-rekognition/dist-cjs/protocols/Aws_json1_1.js:637:25)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async /home/yonatan/src/where-is-the-kid/node_modules/@aws-sdk/middleware-serde/dist-cjs/deserializerMiddleware.js:7:24
+    at async /home/yonatan/src/where-is-the-kid/node_modules/@aws-sdk/middleware-signing/dist-cjs/middleware.js:11:20
+    at async StandardRetryStrategy.retry (/home/yonatan/src/where-is-the-kid/node_modules/@aws-sdk/middleware-retry/dist-cjs/StandardRetryStrategy.js:51:46)
+    at async /home/yonatan/src/where-is-the-kid/node_modules/@aws-sdk/middleware-logger/dist-cjs/loggerMiddleware.js:6:22
+    at async findMatch (/home/yonatan/src/where-is-the-kid/dist/src/services/compare.js:8:21)
+    at async Object.compare (/home/yonatan/src/where-is-the-kid/dist/src/services/compare.js:39:38)
+    at async invokeComparison (/home/yonatan/src/where-is-the-kid/dist/src/whatsapp/app.js:178:24)

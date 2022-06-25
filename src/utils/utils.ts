@@ -1,10 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
 import 'dotenv/config'
+import fetch from 'node-fetch'
 
-const logDirectory =  process.env.LOG_DIR || '/tmp'
+const logDirectory = process.env.LOG_DIR || '/tmp'
 
-if (!fs.existsSync(logDirectory)){
+if (!fs.existsSync(logDirectory)) {
     fs.mkdirSync(logDirectory, { recursive: true });
 }
 
@@ -66,4 +67,12 @@ const db = {
     }
 }
 
-export { log, timeStamp, loadImagesFromFolder, db }
+const imageUrlToBase64 = async (url: string) => {
+    let response = await fetch(url);
+    const blob = await response.arrayBuffer();
+    // return  `data:${response.headers.get('content-type') || 'image/jpeg'};base64,${Buffer.from(blob).toString("base64")}`
+    return Buffer.from(blob).toString("base64")
+
+}
+
+export { log, timeStamp, loadImagesFromFolder, db, imageUrlToBase64 }

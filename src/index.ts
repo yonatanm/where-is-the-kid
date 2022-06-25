@@ -1,7 +1,7 @@
 import express from 'express'
 import 'dotenv/config'
 import { compareController } from './controllers/compareController'
-import { getChats, getStatus } from './whatsapp/app'
+import { simulate, getFaceGroups, getStatus } from './whatsapp/app'
 import multer from 'multer'
 import { log } from './utils/utils'
 
@@ -37,8 +37,11 @@ server.post('/api/compare', upload.fields([{ name: 'gallary' }, { name: 'portrai
     await compareController.compare(req.files, formData)
 });
 
-server.get('/api/wa/getChats', async (req, res) => {
-    await getChats((req.query?.id || '') as string)
+server.get('/api/wa/getFaceGroups', async (req, res) => {
+    res.json(await getFaceGroups())
+})
+server.get('/api/wa/simulate', async (req, res) => {
+    await simulate()
     res.json("OK 33")
 })
 
