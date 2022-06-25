@@ -162,12 +162,14 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
 
 const getStatus = async () => {
     let reg = false
+    let info ={}
     try {
         reg = await waClient.isRegisteredUser(BOT_ID)
+        info = await waClient.info
     } catch (ex) {
         console.info("failed to check is MY_NUM is registered, so I guess we are not connected")
     }
-    return { connected: reg }
+    return { connected: reg, info }
 }
 
 const simulate = async () => {
