@@ -158,7 +158,6 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
         }
         console.log(`BINGO ! we have a match fron ${faceGroupChat.name} to ${faceGroupChat.name}`)
         await message.forward(fgId)
-        waClient.pupPage
     }
 }
 
