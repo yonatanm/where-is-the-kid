@@ -40,20 +40,17 @@ const manager = SimpleLogger.createLogManager(x);
 manager.createRollingFileAppender(opts);
 const log = manager.createLogger();
 
+const getRequestID = () => applicationNamespace.get('REQUEST_ID') || 'global'
 
 log.setLevel('info');
 console.log = (...args) => {
-    const requestId = applicationNamespace.get('REQUEST_ID');
-    log.info('[' + requestId + ']', ...args)
-}
-console.error = (...args) => {
-    const requestId = applicationNamespace.get('REQUEST_ID');
-    log.error('[' + requestId + ']', ...args)
-
+    log.info('[' + getRequestID() + ']', ...args)
 }
 console.warn = (...args) => {
-    const requestId = applicationNamespace.get('REQUEST_ID');
-    log.warn('[' + requestId + ']', ...args)
+    log.warn('[' + getRequestID() + ']', ...args)
+}
+console.error = (...args) => {
+    log.error('[' + getRequestID() + ']', ...args)
 }
 
 
