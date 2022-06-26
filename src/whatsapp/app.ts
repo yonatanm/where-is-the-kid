@@ -138,7 +138,7 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
 
     for (let fgId of faceGroupIds) {
         const faceGroupChat = (await waClient.getChatById(fgId)) as GroupChat
-        console.log(`working on face group ${faceGroupChat.name}`)
+        console.log(`...working on face group ${faceGroupChat.name}`)
         if (faceGroupChat.archived) {
             console.log('archived group. skip');
             continue
@@ -148,7 +148,7 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
             console.log('not portraitUrl. skip')
             continue
         }
-        console.log("we have a faceUrl", faceUrl)
+        console.log("we have a faceUrl")
         const msgMedia = await message.downloadMedia()
         if (!msgMedia) {
             console.log("couldn't donwload the media. skip")
@@ -156,15 +156,13 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
         }
 
         const faceImageAsBase64 = await imageUrlToBase64(faceUrl)
-        console.log("running coparison")
+        console.log("running comparison")
         const resMedia = await invokeComparison({ faceImageAsBase64, message, msgMedia, groupId: faceGroupChat.id._serialized })
         if (!resMedia || resMedia.length === 0) {
-            console.log('there is no match')
+            console.log('..there is no match')
             continue
         }
-        console.log(`BINGO ! we have a match fron ${faceGroupChat.name} to ${faceGroupChat.name}`)
-        const x = faceGroupChat as Chat
-
+        console.log(`..BINGO ! we have a match fron ${faceGroupChat.name} to ${faceGroupChat.name}`)
         await message.forward(fgId)
     }
 }

@@ -31,7 +31,6 @@ const compare = async (user: IUser, person: IPerson, portraitsMedia: IMedia, gal
     let matches: string[] = []
     let i = 0
     for (let g of gallaryMedia) {
-        console.log(` comparing with ${portraitsMedia.metadata.origFile} and ${g.metadata.origFile}`)
         const isThereMatch = await findMatch(user, person, portraitsMedia, g)
         if (isThereMatch) {
             matches.push(g.metadata.externalId || '__' + i + '___')
