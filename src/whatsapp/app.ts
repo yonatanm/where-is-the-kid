@@ -57,8 +57,8 @@ waClient.on("ready", () => {
 
 const getFaceGroupsForContactId = async (participantId: string): Promise<string[]> => {
     const db = new Map()
-    const commonGroupsIds: string[] = (await waClient.getCommonGroups(participantId)).map(g=>g._serialized)
-    const ids :string[] = []
+    const commonGroupsIds: string[] = (await waClient.getCommonGroups(participantId)).map(g => g._serialized)
+    const ids: string[] = []
     for (let gid of commonGroupsIds) {
         const group = await waClient.getChatById(gid) as GroupChat
         if (group.owner && group.owner._serialized === BOT_ID) // we have a face group
@@ -98,15 +98,15 @@ waClient.on("message", async (message: WAWebJS.Message,) => {
         console.log('currenlty we dont support direct messages')
     }
     const groupChat: GroupChat = chat as GroupChat
-    console.log("got a message to group "+groupChat.name+" "+groupChat.id._serialized)
+    console.log("got a message to group " + groupChat.name + " " + groupChat.id._serialized)
 
+    if (!message.hasMedia || message.type !== MessageTypes.IMAGE) {
+        console.log('this message has no image')
+        return
+    }
     //ignore messages to the group I created unless it start
     if (groupChat.name.toLocaleLowerCase().includes('witk') && groupChat.owner && groupChat.owner._serialized === BOT_ID) {
         console.log('currenly we dont support messages to our group')
-        return
-    }
-    if (!message.hasMedia) {
-        console.log('this message has no media')
         return
     }
     console.log('we got a message with media, we might have to do something')
@@ -116,13 +116,13 @@ waClient.on("message", async (message: WAWebJS.Message,) => {
     try {
         await orchestrate(groupChat, message)
     }
-    catch(ex) {
+    catch (ex) {
         console.error("got error orchestrating", ex)
     }
 })
 
 const orchestrate = async (groupChat: GroupChat, message: Message) => {
-    if (!groupChat.participants || groupChat.participants.length===0) {
+    if (!groupChat.participants || groupChat.participants.length === 0) {
         console.log("no participants in this gropu, skip the group")
         return
     }
@@ -133,7 +133,7 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
     console.log("faceGroups ", faceGroups)
 
     for (let fg of faceGroups) {
-        const groupChat = (await waClient.getChatById(fg))as GroupChat
+        const groupChat = (await waClient.getChatById(fg)) as GroupChat
 
         console.log(`working on face group ${groupChat.name}`)
         const faceUrl = await waClient.getProfilePicUrl(fg)
@@ -162,7 +162,7 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
 
 const getStatus = async () => {
     let reg = false
-    let info ={}
+    let info = {}
     try {
         reg = await waClient.isRegisteredUser(BOT_ID)
         info = await waClient.info
