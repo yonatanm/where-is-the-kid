@@ -2,6 +2,20 @@ import * as fs from "fs";
 import * as path from "path";
 import 'dotenv/config'
 import fetch from 'node-fetch'
+import { createNamespace } from 'cls-hooked';
+import { v4 as uuidv4 } from 'uuid';
+import * as SimpleLogger from 'simple-node-logger'
+
+const applicationNamespace = createNamespace('APP_NAMESPACE');
+
+const runWithContext = (cb: any, ...args: any) => {
+    applicationNamespace.run(() => {
+        applicationNamespace.set('REQUEST_ID', uuidv4());
+        cb(...args)
+    });
+}
+
+
 
 const logDirectory = process.env.LOG_DIR || '/tmp'
 
@@ -9,8 +23,6 @@ if (!fs.existsSync(logDirectory)) {
     fs.mkdirSync(logDirectory, { recursive: true });
 }
 
-// const SimpleLogger = require("simple-node-logger")
-import * as SimpleLogger from 'simple-node-logger'
 
 
 const opts = {
@@ -28,10 +40,21 @@ const manager = SimpleLogger.createLogManager(x);
 manager.createRollingFileAppender(opts);
 const log = manager.createLogger();
 
+
 log.setLevel('info');
-console.log = (...args) => { log.info(...args) }
-console.error = (...args) => { log.error(...args) }
-console.warn = (...args) => { log.warn(...args) }
+console.log = (...args) => {
+    const requestId = applicationNamespace.get('REQUEST_ID');
+    log.info('[' + requestId + ']', ...args)
+}
+console.error = (...args) => {
+    const requestId = applicationNamespace.get('REQUEST_ID');
+    log.error('[' + requestId + ']', ...args)
+
+}
+console.warn = (...args) => {
+    const requestId = applicationNamespace.get('REQUEST_ID');
+    log.warn('[' + requestId + ']', ...args)
+}
 
 
 const timeStamp = () => {
@@ -75,4 +98,4 @@ const imageUrlToBase64 = async (url: string) => {
 
 }
 
-export { log, timeStamp, loadImagesFromFolder, db, imageUrlToBase64 }
+export { runWithContext, log, timeStamp, loadImagesFromFolder, db, imageUrlToBase64 }

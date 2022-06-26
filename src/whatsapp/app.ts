@@ -1,10 +1,10 @@
 import * as qrcode from 'qrcode-terminal'
 import WAWebJS, { ChatId, GroupParticipant, Client, LocalAuth, Message, MessageMedia, Chat, ChatTypes, MessageTypes, GroupChat } from 'whatsapp-web.js'
 import { compareService } from '../services/compare'
-import { imageUrlToBase64, db } from '../utils/utils'
+import { imageUrlToBase64, db, runWithContext } from '../utils/utils'
 import { IMedia, } from '../types';
-import 'dotenv/config'
 
+import 'dotenv/config'
 
 const toContactId = (num: string) => `${num}@c.us`
 const toGroupId = (num: string) => `${num}@g.us`
@@ -50,17 +50,23 @@ waClient.on("ready", () => {
     console.log('Client is ready!');
 });
 
-waClient.on("message", (message: WAWebJS.Message,) => {
-    handleMessage(message)
+
+waClient.on("message", (message: WAWebJS.Message) => {
+    runWithContext((msg: WAWebJS.Message) => {
+        handleMessage(msg)
+    }, message)
 })
 
 
-const getFaceGroupsForContactId = async (participantId: string): Promise<string[]> => {
+const getFaceGroupsForContactId = async (groupChatId: string, participantId: string): Promise<string[]> => {
     const db = new Map()
     const commonGroupsIds: string[] = (await waClient.getCommonGroups(participantId)).map(g => g._serialized)
     const ids: string[] = []
     for (let gid of commonGroupsIds) {
         const group = await waClient.getChatById(gid) as GroupChat
+        if (group.id._serialized === groupChatId) { // skip the originated group
+            continue;
+        }
         if (group.owner && group.owner._serialized === BOT_ID) // we have a face group
         {
             ids.push(gid)
@@ -79,11 +85,11 @@ const getFaceGroups = async () => {
 
 }
 
-const getFaceGroupsForParticipants = async (participants: GroupParticipant[]) => {
+const getFaceGroupsForParticipants = async (groupChatId: string, participants: GroupParticipant[]) => {
     let allFacegroups: string[] = []
     for (let gp of participants) {
         const participantId = gp.id._serialized
-        const faceGroups = await getFaceGroupsForContactId(participantId)
+        const faceGroups = await getFaceGroupsForContactId(groupChatId, participantId)
         faceGroups.forEach(fg => allFacegroups.push(fg))
     }
     return [...new Set(allFacegroups)]
@@ -129,8 +135,8 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
     const groupParticipants = groupChat.participants.filter(p => p.id._serialized !== BOT_ID);
     console.log(`there are ${groupParticipants.length} participants`)
 
-    const faceGroupIds = await getFaceGroupsForParticipants(groupParticipants);
-    console.log("faceGroups ", faceGroupIds)
+    const faceGroupIds = await getFaceGroupsForParticipants(groupChat.id._serialized, groupParticipants);
+    console.log("num faceGroups ", faceGroupIds.length)
 
     for (let fgId of faceGroupIds) {
         const faceGroupChat = (await waClient.getChatById(fgId)) as GroupChat
