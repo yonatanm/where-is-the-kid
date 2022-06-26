@@ -166,7 +166,7 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
         await message.forward(fgId)
         const sender = await message.getContact()
         // form ${groupChat.name} sent by ${sender.id.user}
-        await waClient.sendMessage(fgId, `נשלח ע"י ${sender.id.user} בקבוצה ${groupChat.name}`, { mentions: [sender] })
+        await faceGroupChat.sendMessage(`נשלח ע"י @${sender.id.user} בקבוצה ${groupChat.name}`, { mentions: [sender] })
     }
 }
 
