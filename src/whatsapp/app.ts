@@ -34,7 +34,6 @@ const waClient = new Client({
             '--single-process',
             '--disable-gpu'
         ],
-        headless: true
     },
     authStrategy: new LocalAuth(),
 });
@@ -83,7 +82,6 @@ const getFaceGroupsForParticipants = async (participants: GroupParticipant[]) =>
     let allFacegroups: string[] = []
     for (let gp of participants) {
         const participantId = gp.id._serialized
-        if (participantId === BOT_ID) { continue; }
         const faceGroups = await getFaceGroupsForContactId(participantId)
         faceGroups.forEach(fg => allFacegroups.push(fg))
     }
@@ -127,16 +125,19 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
         return
     }
     const groupParticipants = groupChat.participants.filter(p => p.id._serialized !== BOT_ID);
-    console.log(`groupParticipants ${groupParticipants.map(p => p.id._serialized)}`)
+    console.log(`there are ${groupParticipants.length} participants`)
 
-    const faceGroups = await getFaceGroupsForParticipants(groupParticipants);
-    console.log("faceGroups ", faceGroups)
+    const faceGroupIds = await getFaceGroupsForParticipants(groupParticipants);
+    console.log("faceGroups ", faceGroupIds)
 
-    for (let fg of faceGroups) {
-        const groupChat = (await waClient.getChatById(fg)) as GroupChat
-
-        console.log(`working on face group ${groupChat.name}`)
-        const faceUrl = await waClient.getProfilePicUrl(fg)
+    for (let fgId of faceGroupIds) {
+        const faceGroupChat = (await waClient.getChatById(fgId)) as GroupChat
+        console.log(`working on face group ${faceGroupChat.name}`)
+        if (faceGroupChat.archived) {
+            console.log('skipping on archied group'); 
+            continue
+        }
+        const faceUrl = await waClient.getProfilePicUrl(fgId)
         if (!faceUrl) {
             console.log('not portraitUrl, maybe it is the wrong group?')
             continue
@@ -150,13 +151,14 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
 
         const faceImageAsBase64 = await imageUrlToBase64(faceUrl)
         console.log("got the base64 of the face ", faceImageAsBase64.substring(0, 10))
-        const resMedia = await invokeComparison({ faceImageAsBase64, message, msgMedia, groupId: groupChat.id._serialized })
+        const resMedia = await invokeComparison({ faceImageAsBase64, message, msgMedia, groupId: faceGroupChat.id._serialized })
         if (!resMedia || resMedia.length === 0) {
             console.log('there was no match')
             continue
         }
-        console.log(`BINGO ! we have a match fron ${groupChat.name} to ${groupChat.name}`)
-        await message.forward(fg)
+        console.log(`BINGO ! we have a match fron ${faceGroupChat.name} to ${faceGroupChat.name}`)
+        await message.forward(fgId)
+        waClient.pupPage
     }
 }
 
