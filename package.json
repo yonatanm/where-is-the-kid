@@ -16,7 +16,7 @@
     "server:build": "npm run server:clean && tsc -d",
     "build": "echo @@ in build @@ ; npm run server:build",
     "start": "echo @@ in start @@ ; node dist/src/index.js",
-    "deploy": "npm i && cp ~/.awsrc .env && cat version >> .env && sudo cp scripts/where-is-the-kid.service /lib/systemd/system/ && sudo systemctl daemon-reload && npm run build && sudo systemctl restart where-is-the-kid.service"
+    "deploy": "npm i && cp ~/.witkrc .env && cat version >> .env && sudo cp scripts/where-is-the-kid.service /lib/systemd/system/ && sudo systemctl daemon-reload && npm run build && sudo systemctl restart where-is-the-kid.service"
   },
   "author": "yoatanm",
   "license": "ISC",

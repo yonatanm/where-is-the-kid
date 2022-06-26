@@ -3,22 +3,18 @@ import WAWebJS, { ChatId, GroupParticipant, Client, LocalAuth, Message, MessageM
 import { compareService } from '../services/compare'
 import { imageUrlToBase64, db } from '../utils/utils'
 import { IMedia, } from '../types';
+import 'dotenv/config'
 
 
 const toContactId = (num: string) => `${num}@c.us`
 const toGroupId = (num: string) => `${num}@g.us`
 
 //groups
-const IMAABA_ID = toGroupId("972546519551-1515593791")
-const EXPERMIMENTS_ID = toGroupId("120363023106759216")
-const WITK_1_ID = toGroupId("120363043577969853")
-const WHEREISTEKID = toGroupId("120363042389141612")
+const EXPERMIMENTS_ID = toGroupId(process.env.EXPERMINETS_GROUP_ID || 'EXPERMINETS_GROUP_ID')
 
 
 //contacts
-const BOT_ID = toContactId('972546519551')
-const ITAMAR_ID = toContactId('972556605181')
-const SHAKHAF_ID = toContactId('972545944849')
+const BOT_ID = toContactId(process.env.BOT_NUM || 'NO_BOT_NUM')
 
 const waClient = new Client({
     puppeteer: {
@@ -53,6 +49,11 @@ waClient.on("authenticated", () => {
 waClient.on("ready", () => {
     console.log('Client is ready!');
 });
+
+waClient.on("message", (message: WAWebJS.Message,) => {
+    handleMessage(message)
+})
+
 
 const getFaceGroupsForContactId = async (participantId: string): Promise<string[]> => {
     const db = new Map()
@@ -89,7 +90,7 @@ const getFaceGroupsForParticipants = async (participants: GroupParticipant[]) =>
 }
 
 
-waClient.on("message", async (message: WAWebJS.Message,) => {
+const handleMessage = async (message: WAWebJS.Message) => {
     const chat = await message.getChat()
 
     if (!chat.isGroup) {
@@ -117,7 +118,8 @@ waClient.on("message", async (message: WAWebJS.Message,) => {
     catch (ex) {
         console.error("got error orchestrating", ex)
     }
-})
+}
+
 
 const orchestrate = async (groupChat: GroupChat, message: Message) => {
     if (!groupChat.participants || groupChat.participants.length === 0) {
@@ -134,7 +136,7 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
         const faceGroupChat = (await waClient.getChatById(fgId)) as GroupChat
         console.log(`working on face group ${faceGroupChat.name}`)
         if (faceGroupChat.archived) {
-            console.log('skipping on archied group'); 
+            console.log('skipping on archied group');
             continue
         }
         const faceUrl = await waClient.getProfilePicUrl(fgId)
@@ -157,6 +159,8 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
             continue
         }
         console.log(`BINGO ! we have a match fron ${faceGroupChat.name} to ${faceGroupChat.name}`)
+        const x = faceGroupChat as Chat
+
         await message.forward(fgId)
     }
 }
@@ -171,6 +175,21 @@ const getStatus = async () => {
         console.info("failed to check is MY_NUM is registered, so I guess we are not connected")
     }
     return { connected: reg, info }
+}
+
+
+const invokeComparison = async ({ faceImageAsBase64, message, msgMedia, groupId }: { faceImageAsBase64: string, message: Message, msgMedia: MessageMedia, groupId: string }) => {
+    const portrait: IMedia = {
+        data: Buffer.from(faceImageAsBase64, "base64"),
+        metadata: { origFile: groupId, externalId: groupId }
+    }
+    const gallary: IMedia[] = [{
+        data: Buffer.from(msgMedia.data, "base64"),
+        metadata: { origFile: message.mediaKey || 'origFile', externalId: message.mediaKey || 'mediaKey' }
+    }]
+    const compareRes: string[] = await compareService.compare(db.users.yonatan, { id: 'xyz', name: 'xyz' },
+        portrait, gallary);
+    return compareRes
 }
 
 const simulate = async () => {
@@ -200,24 +219,9 @@ const simulate = async () => {
     await orchestrate(gr, msg)
 }
 
-const invokeComparison = async ({ faceImageAsBase64, message, msgMedia, groupId }: { faceImageAsBase64: string, message: Message, msgMedia: MessageMedia, groupId: string }) => {
-    const portrait: IMedia = {
-        data: Buffer.from(faceImageAsBase64, "base64"),
-        metadata: { origFile: groupId, externalId: groupId }
-    }
-    const gallary: IMedia[] = [{
-        data: Buffer.from(msgMedia.data, "base64"),
-        metadata: { origFile: message.mediaKey || 'origFile', externalId: message.mediaKey || 'mediaKey' }
-    }]
-    const compareRes: string[] = await compareService.compare(db.users.yonatan, { id: 'xyz', name: 'xyz' },
-        portrait, gallary);
-    return compareRes
-}
-
 
 console.log('waClient initialize')
-waClient.initialize().then(() => { console.log('after init') })
-
+waClient.initialize()
 
 export { getFaceGroups, simulate, getStatus }
 
