@@ -119,7 +119,6 @@ const handleMessage = async (message: WAWebJS.Message) => {
             console.log("no participants. skip")
             return
         }
-        console.log('we got a message with media, we might have to do something')
         // so we are in a group not created by the bot and got a message with media.
         // we need to find all contacts that are our users
 
