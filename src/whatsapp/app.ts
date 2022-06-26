@@ -104,7 +104,7 @@ const handleMessage = async (message: WAWebJS.Message) => {
             console.log('not a group message. skip')
         }
         const groupChat: GroupChat = chat as GroupChat
-        console.log("got a message to group " + groupChat.name )
+        console.log("got a message to group " + groupChat.name)
 
         if (!message.hasMedia || message.type !== MessageTypes.IMAGE) {
             console.log('no image. skip')
@@ -164,6 +164,9 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
         }
         console.log(`* BINGO ! we have a match fron ${faceGroupChat.name} to ${faceGroupChat.name}`)
         await message.forward(fgId)
+        const sender = await message.getContact()
+        // form ${groupChat.name} sent by ${sender.id.user}
+        await waClient.sendMessage(fgId, `נשלח ע"י ${sender.id.user} בקבוצה ${groupChat.name}`, { mentions: [sender] })
     }
 }
 
