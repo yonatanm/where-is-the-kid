@@ -155,7 +155,7 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
             console.log('there was no match')
             continue
         }
-        console.log(`BINGO ! we have a match to ${groupChat.name}`)
+        console.log(`BINGO ! we have a match fron ${groupChat.name} to ${groupChat.name}`)
         await message.forward(fg)
     }
 }
