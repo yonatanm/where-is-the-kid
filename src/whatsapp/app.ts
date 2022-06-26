@@ -159,10 +159,10 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
         console.log("running comparison")
         const resMedia = await invokeComparison({ faceImageAsBase64, message, msgMedia, groupId: faceGroupChat.id._serialized })
         if (!resMedia || resMedia.length === 0) {
-            console.log('..there is no match')
+            console.log('@ there is no match')
             continue
         }
-        console.log(`..BINGO ! we have a match fron ${faceGroupChat.name} to ${faceGroupChat.name}`)
+        console.log(`* BINGO ! we have a match fron ${faceGroupChat.name} to ${faceGroupChat.name}`)
         await message.forward(fgId)
     }
 }
