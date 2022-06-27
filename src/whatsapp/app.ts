@@ -102,6 +102,7 @@ const handleMessage = async (message: WAWebJS.Message) => {
 
         if (!chat.isGroup) {
             console.log('not a group message. skip')
+            return;
         }
         const groupChat: GroupChat = chat as GroupChat
         console.log("got a message to group " + groupChat.name)
