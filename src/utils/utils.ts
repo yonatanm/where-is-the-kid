@@ -6,7 +6,8 @@ import { createNamespace } from 'cls-hooked';
 import { v4 as uuidv4 } from 'uuid';
 import * as SimpleLogger from 'simple-node-logger'
 
-const applicationNamespace = createNamespace('APP_NAMESPACE');
+const applicationNamespace = createNamespace('witk.app');
+const simulationNamespace = createNamespace('witk.sim');
 
 const runWithContext = (cb: any, ...args: any) => {
     applicationNamespace.run(() => {
@@ -15,6 +16,12 @@ const runWithContext = (cb: any, ...args: any) => {
     });
 }
 
+const simulateWithContext = (cb: any, ...args: any) => {
+    simulationNamespace.run(() => {
+        simulationNamespace.set('REQUEST_ID', `sim_${uuidv4()}`);
+        cb(...args)
+    });
+}
 
 
 const logDirectory = process.env.LOG_DIR || '/tmp'
@@ -40,9 +47,10 @@ const manager = SimpleLogger.createLogManager(x);
 manager.createRollingFileAppender(opts);
 const log = manager.createLogger();
 
-const getRequestID = () => applicationNamespace.get('REQUEST_ID') || 'global'
+const getRequestID = () => applicationNamespace.get('REQUEST_ID') || simulationNamespace.get('REQUEST_ID') || 'global'
 
 log.setLevel('info');
+
 console.log = (...args) => {
     log.info('[' + getRequestID() + ']', ...args)
 }
@@ -95,4 +103,4 @@ const imageUrlToBase64 = async (url: string) => {
 
 }
 
-export { runWithContext, log, timeStamp, loadImagesFromFolder, db, imageUrlToBase64 }
+export { runWithContext, simulateWithContext, log, timeStamp, loadImagesFromFolder, db, imageUrlToBase64 }

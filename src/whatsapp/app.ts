@@ -1,7 +1,7 @@
 import * as qrcode from 'qrcode-terminal'
 import WAWebJS, { ChatId, GroupParticipant, Client, LocalAuth, Message, MessageMedia, Chat, ChatTypes, MessageTypes, GroupChat } from 'whatsapp-web.js'
 import { compareService } from '../services/compare'
-import { imageUrlToBase64, db, runWithContext } from '../utils/utils'
+import { imageUrlToBase64, db, runWithContext, simulateWithContext } from '../utils/utils'
 import { IMedia, } from '../types';
 
 import 'dotenv/config'
@@ -197,9 +197,21 @@ const invokeComparison = async ({ faceImageAsBase64, message, msgMedia, groupId 
     return compareRes
 }
 
-const simulate = async () => {
+const simulate = async (name: string) => {
+    simulateWithContext(async (n: string) => {
+        const chats = (await waClient.getChats()).filter(c => c.name == n)
+        if (chats.length === 0) {
+            console.log(`could find chat named ${n} to simulate. skip`)
+            return
+        }
+        doSimulate(chats[0].id._serialized)
+    }, name)
+}
+
+const doSimulate = async (chatId: string) => {
+    console.log(`simulation chatId: [${chatId}]`)
     const x = (await waClient.getChats()).filter(c => c.isGroup).map(c => ((c as unknown) as GroupChat))
-    const gr = x.filter(gc => gc.id._serialized === EXPERMIMENTS_ID)[0]
+    const gr = x.filter(gc => gc.id._serialized === chatId)[0]
     const groupId = gr.id._serialized
     console.log(`simulating group ${gr.name} ${groupId}`)
     let i = 0;
@@ -219,8 +231,8 @@ const simulate = async () => {
     }
     console.log(`found a msg from ${msg.timestamp} to simulate ... lets start`)
     await orchestrate(gr, msg)
-}
 
+}
 
 console.log('waClient initialize')
 waClient.initialize()
