@@ -59,11 +59,13 @@ waClient.on("message", (message: WAWebJS.Message) => {
 
 
 const getFaceGroupsForContactId = async (groupChatId: string, participantId: string): Promise<string[]> => {
-    const db = new Map()
     const commonGroupsIds: string[] = (await waClient.getCommonGroups(participantId)).map(g => g._serialized)
     const ids: string[] = []
     for (let gid of commonGroupsIds) {
         const group = await waClient.getChatById(gid) as GroupChat
+        if (group.name.trim().toLocaleLowerCase().includes('witk')) {
+            continue;
+        }
         if (group.id._serialized === groupChatId) { // skip the originated group
             continue;
         }
