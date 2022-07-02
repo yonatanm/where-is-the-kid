@@ -63,7 +63,7 @@ const getFaceGroupsForContactId = async (groupChatId: string, participantId: str
     const ids: string[] = []
     for (let gid of commonGroupsIds) {
         const group = await waClient.getChatById(gid) as GroupChat
-        if (group.name.trim().toLocaleLowerCase().includes('witk')) {
+        if (!group.name.trim().toLocaleLowerCase().includes('witk')) {
             continue;
         }
         if (group.id._serialized === groupChatId) { // skip the originated group
