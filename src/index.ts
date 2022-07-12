@@ -18,7 +18,7 @@ server.get('/api/status', async (req, res) => {
 })
 
 server.get('/api/connected', async (req, res, next) => {
-    console.log(`/api/connected  UA: ${req.headers['user-agent']}`)
+    console.log(`/api/connected IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress } UA: ${req.headers['user-agent']}`)
     const status = await getStatus()
     if (status && status.connected) {
         res.sendStatus(200)
