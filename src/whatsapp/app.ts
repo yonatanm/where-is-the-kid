@@ -9,12 +9,10 @@ import 'dotenv/config'
 const toContactId = (num: string) => `${num}@c.us`
 const toGroupId = (num: string) => `${num}@g.us`
 
-//groups
-const EXPERMIMENTS_ID = toGroupId(process.env.EXPERMINETS_GROUP_ID || 'EXPERMINETS_GROUP_ID')
-
-
 //contacts
 const BOT_ID = toContactId(process.env.BOT_NUM || 'NO_BOT_NUM')
+
+const USER_AGENT = process.env?.USER_AGENT || undefined
 
 const waClient = new Client({
     puppeteer: {
@@ -31,6 +29,7 @@ const waClient = new Client({
             '--disable-gpu'
         ],
     },
+    userAgent: USER_AGENT,
     authStrategy: new LocalAuth(),
 });
 
@@ -172,16 +171,40 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
     }
 }
 
-const getStatus = async () => {
-    let reg = false
-    let info = {}
-    try {
-        reg = await waClient.isRegisteredUser(BOT_ID)
-        info = await waClient.info
-    } catch (ex) {
-        console.info("failed to check is MY_NUM is registered, so I guess we are not connected")
+
+declare var window: any;// Window & typeof globalThis;
+
+const getNumberIdPatch = async (number: string) => {
+    if (!number.endsWith('@c.us')) {
+        number += '@c.us';
     }
-    return { connected: reg, info }
+    const browser = waClient?.pupBrowser as any
+    // console.log('browser', !!browser)
+
+    return await waClient?.pupPage?.evaluate(async (number) => {
+        const wid = window.Store.WidFactory.createWid(number);
+        const result = await window.Store.QueryExist(wid);
+        if (!result || result.wid === undefined) return null;
+        return result.wid;
+    }, number);
+
+}
+
+const getStatus = async () => {
+    let connected
+    let { info } = waClient
+    try {
+        connected = Boolean(await getNumberIdPatch(BOT_ID));
+    } catch (ex) {
+        if (ex.message && ex.message.includes('Session closed. Most likely the page has been closed')) {
+            console.info('** session closed')
+            connected = false;
+        }
+        else {
+            console.error(`failed to check is ${BOT_ID} is registered, so I guess we are not connected`, ex)
+        }
+    }
+    return { connected, info }
 }
 
 

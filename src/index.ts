@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { response } from 'express'
 import 'dotenv/config'
 import { simulate, getFaceGroups, getStatus } from './whatsapp/app'
 
@@ -17,11 +17,22 @@ server.get('/api/status', async (req, res) => {
     res.json(await getStatus())
 })
 
+server.head('/api/connected', async (req, res, next) => {
+    const status = await getStatus()
+    if (status && status.connected) {
+        res.header('X-WITK-CONNECTED', 'True')        
+    } else {
+        res.header('X-WITK-CONNECTED', 'False')
+    }
+    next();
+})
+
+
 server.get('/api/wa/getFaceGroups', async (req, res) => {
     res.json(await getFaceGroups())
 })
-server.get('/api/wa/simulate', async (req : any, res) => {
-    await simulate(req.query?.name||'')
+server.get('/api/wa/simulate', async (req: any, res) => {
+    await simulate(req.query?.name || '')
     res.json("OK")
 })
 
