@@ -20,9 +20,9 @@ server.get('/api/status', async (req, res) => {
 server.get('/api/connected', async (req, res, next) => {
     const status = await getStatus()
     if (status && status.connected) {
-        res.status(200)
+        res.sendStatus(200)
     } else {
-        res.status(503)
+        res.sendStatus(503)
     }
 })
 
