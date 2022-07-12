@@ -17,14 +17,13 @@ server.get('/api/status', async (req, res) => {
     res.json(await getStatus())
 })
 
-server.head('/api/connected', async (req, res, next) => {
+server.get('/api/connected', async (req, res, next) => {
     const status = await getStatus()
     if (status && status.connected) {
-        res.header('X-WITK-CONNECTED', 'True')        
+        res.status(200)
     } else {
-        res.header('X-WITK-CONNECTED', 'False')
+        res.status(503)
     }
-    next();
 })
 
 
