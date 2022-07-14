@@ -171,25 +171,6 @@ const orchestrate = async (groupChat: GroupChat, message: Message) => {
     }
 }
 
-
-declare var window: any;// Window & typeof globalThis;
-
-// const getNumberIdPatch = async (number: string) => {
-//     if (!number.endsWith('@c.us')) {
-//         number += '@c.us';
-//     }
-//     const browser = waClient?.pupBrowser as any
-//     // console.log('browser', !!browser)
-
-//     return await waClient?.pupPage?.evaluate(async (number) => {
-//         const wid = window.Store.WidFactory.createWid(number);
-//         const result = await window.Store.QueryExist(wid);
-//         if (!result || result.wid === undefined) return null;
-//         return result.wid;
-//     }, number);
-
-// }
-
 const getStatus = async () => {
     let connected
     let { info } = waClient
