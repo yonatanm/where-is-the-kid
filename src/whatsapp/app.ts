@@ -56,24 +56,19 @@ waClient.on("message", (message: WAWebJS.Message) => {
     }, message)
 })
 
+const isFaceGroup = (group: GroupChat) => {
+    return group.name.trim().toLocaleLowerCase().includes('witk') && group?.owner?._serialized === BOT_ID
+}
 
 const getFaceGroupsForContactId = async (groupChatId: string, participantId: string): Promise<string[]> => {
-    const commonGroupsIds: string[] = (await waClient.getCommonGroups(participantId)).map(g => g._serialized)
-    const ids: string[] = []
+    const commonGroupsIds: string[] = (await waClient.getCommonGroups(participantId)).map(g => g._serialized).filter(id => id !== groupChatId)
+
+    const groups: GroupChat[] = []
     for (let gid of commonGroupsIds) {
-        const group = await waClient.getChatById(gid) as GroupChat
-        if (!group.name.trim().toLocaleLowerCase().includes('witk')) {
-            continue;
-        }
-        if (group.id._serialized === groupChatId) { // skip the originated group
-            continue;
-        }
-        if (group.owner && group.owner._serialized === BOT_ID) // we have a face group
-        {
-            ids.push(gid)
-        }
+        groups.push(await waClient.getChatById(gid) as GroupChat)
     }
-    return ids;
+
+    return groups.filter(gr => isFaceGroup(gr)).map(gr => gr.id._serialized)
 }
 
 const getFaceGroups = async () => {
@@ -175,7 +170,7 @@ const getStatus = async () => {
     let connected
     let { info } = waClient
     try {
-        connected = await waClient.isRegisteredUser(BOT_ID);        
+        connected = await waClient.isRegisteredUser(BOT_ID);
     } catch (ex) {
         if (ex.message && ex.message.includes('Session closed. Most likely the page has been closed')) {
             console.info('** session closed')
