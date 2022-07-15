@@ -81,10 +81,9 @@ const getFaceGroups = async () => {
 
 }
 
-const getFaceGroupsForParticipants = async (groupChatId: string, participants: GroupParticipant[]) => {
+const getFaceGroupsForParticipants = async (groupChatId: string, participantsIds: string[]) => {
     let allFacegroups: string[] = []
-    for (let gp of participants) {
-        const participantId = gp.id._serialized
+    for (let participantId of participantsIds) {
         const faceGroups = await getFaceGroupsForContactId(groupChatId, participantId)
         faceGroups.forEach(fg => allFacegroups.push(fg))
     }
@@ -96,30 +95,32 @@ const handleMessage = async (message: WAWebJS.Message) => {
     try {
         const chat = await message.getChat()
 
-        if (!chat.isGroup) {
-            console.log('not a group message. skip')
-            return;
-        }
-        const groupChat: GroupChat = chat as GroupChat
-        console.log("got a message to group " + groupChat.name)
-
         if (!message.hasMedia || message.type !== MessageTypes.IMAGE) {
             console.log('no image. skip')
             return
         }
-        //ignore messages to the group I created unless it start
-        if (groupChat.name.toLocaleLowerCase().includes('witk') && groupChat.owner && groupChat.owner._serialized === BOT_ID) {
-            console.log(`this is a 'witk' gorup that bot owns. skip`)
-            return
+
+        if (chat.isGroup) {
+            const groupChat = (chat as GroupChat)
+            console.log("got a message to group " + chat.name)
+
+            //ignore messages to the group I created unless it start
+            if (groupChat.name.toLocaleLowerCase().includes('witk') && (chat as GroupChat).owner && groupChat.owner._serialized === BOT_ID) {
+                console.log(`this is a 'witk' gorup that bot owns. skip`)
+                return
+            }
+            if (!groupChat.participants || groupChat.participants.length === 0) {
+                console.log("no participants. skip")
+                return
+            }
+        } else {
+            console.log("got a direct message from " + (await chat.getContact()).name)
         }
-        if (!groupChat.participants || groupChat.participants.length === 0) {
-            console.log("no participants. skip")
-            return
-        }
+
         // so we are in a group not created by the bot and got a message with media.
         // we need to find all contacts that are our users
 
-        await orchestrate(groupChat, message)
+        await orchestrate(chat, message)
     }
     catch (ex) {
         console.error("got error handling message", ex)
@@ -127,43 +128,57 @@ const handleMessage = async (message: WAWebJS.Message) => {
 }
 
 
-const orchestrate = async (groupChat: GroupChat, message: Message) => {
-    console.log("We have some work todo")
-    const groupParticipants = groupChat.participants.filter(p => p.id._serialized !== BOT_ID);
-    const faceGroupIds = await getFaceGroupsForParticipants(groupChat.id._serialized, groupParticipants);
+const orchestrate = async (chat: Chat, message: Message) => {
+    console.log("# We have some work todo")
+    let faceGroupIds = null
+    const groupParticipantsIds = (chat.isGroup) ? (chat as GroupChat).participants.map(p => p.id._serialized).filter(p => p !== BOT_ID)
+        : [(await chat.getContact()).id._serialized]
+    faceGroupIds = await getFaceGroupsForParticipants(chat.id._serialized, groupParticipantsIds);
 
+    let matches = 0
     for (let fgId of faceGroupIds) {
         const faceGroupChat = (await waClient.getChatById(fgId)) as GroupChat
-        console.log(`...working on face group ${faceGroupChat.name}`)
+        console.log(`..working on face group ${faceGroupChat.name}`)
         if (faceGroupChat.archived) {
-            console.log('archived group. skip');
+            console.log('....archived group. skip');
             continue
         }
         const faceUrl = await waClient.getProfilePicUrl(fgId)
         if (!faceUrl) {
-            console.log('not portraitUrl. skip')
+            console.log('....not faceUrl. skip')
             continue
         }
-        console.log("we have a faceUrl")
+        // console.log("we have a faceUrl")
         const msgMedia = await message.downloadMedia()
         if (!msgMedia) {
-            console.log("couldn't donwload the media. skip")
+            console.log("...couldn't donwload the media. skip")
             continue;
         }
 
         const faceImageAsBase64 = await imageUrlToBase64(faceUrl)
-        console.log("running comparison")
+        console.log("...running comparison")
         const resMedia = await invokeComparison({ faceImageAsBase64, message, msgMedia, groupId: faceGroupChat.id._serialized })
         if (!resMedia || resMedia.length === 0) {
-            console.log('@ there is no match')
+            console.log('..@ there is no match')
             continue
         }
-        console.log(`* BINGO ! we have a match fron ${faceGroupChat.name} to ${faceGroupChat.name}`)
+        console.log(`..* BINGO ! we have a match fron ${faceGroupChat.name} to ${faceGroupChat.name}`)
+        matches++
         await message.forward(fgId)
         const sender = await message.getContact()
         // form ${groupChat.name} sent by ${sender.id.user}
-        await faceGroupChat.sendMessage(`נשלח ע"י @${sender.id.user} בקבוצה ${groupChat.name}`, { mentions: [sender] })
+        if (chat.isGroup) {
+            await faceGroupChat.sendMessage(`נשלח ע"י @${sender.id.user} בקבוצה ${(chat as GroupChat).name}`, { mentions: [sender] })
+        } else {
+            await faceGroupChat.sendMessage(`נשלח ע"י @${sender.id.user}`, { mentions: [sender] })
+        }
     }
+    if (matches === 0) {
+        console.log(`~ We had no ${matches} matches`)
+    } else {
+        console.log(`$ We had ${matches} matches`)
+    }
+
 }
 
 const getStatus = async () => {
@@ -239,4 +254,3 @@ console.log('waClient initialize')
 waClient.initialize()
 
 export { getFaceGroups, simulate, getStatus }
-
