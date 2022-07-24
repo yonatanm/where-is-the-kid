@@ -108,7 +108,8 @@ const handleMessage = async (client: Client, message: WAWebJS.Message) => {
                 return
             }
         } else {
-            console.log("got a direct message from " + (await chat.getContact()).name)
+            const contact = await chat.getContact()
+            console.log("got a direct message from " + contact.name||contact.id._serialized )
         }
 
         // so we are in a group not created by the bot and got a message with media.
