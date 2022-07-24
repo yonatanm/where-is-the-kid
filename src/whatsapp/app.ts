@@ -14,7 +14,7 @@ const BOT_ID = toContactId(process.env.BOT_NUM || 'NO_BOT_NUM')
 
 const USER_AGENT = process.env?.USER_AGENT || undefined
 
-const waClient = new Client({
+const myClients = [new Client({
     puppeteer: {
         // headless: !true,
         // executablePath: '/snap/bin/firefox',
@@ -30,68 +30,62 @@ const waClient = new Client({
         ],
     },
     userAgent: USER_AGENT,
-    authStrategy: new LocalAuth(),
-});
+    authStrategy: new LocalAuth({clientId:"client_0"}),
+})]
 
+myClients.forEach(async (client: Client, id: number) => {
 
-waClient.on("qr", (qr) => {
-    console.log('qr is ', qr)
-    qrcode.generate(qr, { small: true }, (qrcode) => { console.log(`\n${qrcode}`) }
-    );
-});
+      client.on("qr", (qr: string) => {
+        handleQR(qr)
+    });
 
+    client.on("authenticated", () => {
+        handleAuthenticated()
+    });
 
-waClient.on("authenticated", () => {
-    console.log("AUTHENTICATED");
-});
-
-waClient.on("ready", () => {
-    console.log('Client is ready!');
-});
-
-
-waClient.on("message", (message: WAWebJS.Message) => {
-    runWithContext((msg: WAWebJS.Message) => {
-        handleMessage(msg)
-    }, message)
+    client.on("message", (message: WAWebJS.Message) => {
+        runWithContext((theClient: Client, msg: WAWebJS.Message) => {
+            handleMessage(client, msg)
+        }, client, message)
+    })
+    await client.initialize()
 })
+
+const handleQR = (qr: string) => {
+    console.log('qr is ', qr)
+    qrcode.generate(qr, { small: true }, (qrcode) => { console.log(`\n${qrcode}`) });
+}
+
+const handleAuthenticated = () => {
+    console.log(`client is AUTHENTICATED`)
+}
 
 const isFaceGroup = (group: GroupChat) => {
     return group.name.trim().toLocaleLowerCase().includes('witk') && group?.owner?._serialized === BOT_ID
 }
 
-const getFaceGroupsForContactId = async (groupChatId: string, participantId: string): Promise<string[]> => {
-    const commonGroupsIds: string[] = (await waClient.getCommonGroups(participantId)).map(g => g._serialized).filter(id => id !== groupChatId)
+const getFaceGroupsForContactId = async (client: Client, groupChatId: string, participantId: string): Promise<string[]> => {
+    const commonGroupsIds: string[] = (await client.getCommonGroups(participantId)).map(g => g._serialized).filter(id => id !== groupChatId)
 
     const groups: GroupChat[] = []
     for (let gid of commonGroupsIds) {
-        groups.push(await waClient.getChatById(gid) as GroupChat)
+        groups.push(await client.getChatById(gid) as GroupChat)
     }
 
     return groups.filter(gr => isFaceGroup(gr)).map(gr => gr.id._serialized)
 }
 
-const getFaceGroups = async () => {
-    const chats = await waClient.getChats()
-    console.log("\n" + JSON.stringify(chats.filter(c => c.isGroup && c)
-        .filter(c => !c.isMuted && !c.archived)
-        .map(c => ((c as unknown) as GroupChat)).filter(g => g.owner && g.owner._serialized === BOT_ID)
-    ))
-    return []
-
-}
-
-const getFaceGroupsForParticipants = async (groupChatId: string, participantsIds: string[]) => {
+const getFaceGroupsForParticipants = async (client: Client, groupChatId: string, participantsIds: string[]) => {
     let allFacegroups: string[] = []
     for (let participantId of participantsIds) {
-        const faceGroups = await getFaceGroupsForContactId(groupChatId, participantId)
+        const faceGroups = await getFaceGroupsForContactId(client, groupChatId, participantId)
         faceGroups.forEach(fg => allFacegroups.push(fg))
     }
     return [...new Set(allFacegroups)]
 }
 
 
-const handleMessage = async (message: WAWebJS.Message) => {
+const handleMessage = async (client: Client, message: WAWebJS.Message) => {
     try {
         const chat = await message.getChat()
 
@@ -120,7 +114,7 @@ const handleMessage = async (message: WAWebJS.Message) => {
         // so we are in a group not created by the bot and got a message with media.
         // we need to find all contacts that are our users
 
-        await orchestrate(chat, message)
+        await orchestrate(client, chat, message)
     }
     catch (ex) {
         console.error("got error handling message", ex)
@@ -128,22 +122,22 @@ const handleMessage = async (message: WAWebJS.Message) => {
 }
 
 
-const orchestrate = async (chat: Chat, message: Message) => {
+const orchestrate = async (client: Client, chat: Chat, message: Message) => {
     console.log("# We have some work todo")
     let faceGroupIds = null
     const groupParticipantsIds = (chat.isGroup) ? (chat as GroupChat).participants.map(p => p.id._serialized).filter(p => p !== BOT_ID)
         : [(await chat.getContact()).id._serialized]
-    faceGroupIds = await getFaceGroupsForParticipants(chat.id._serialized, groupParticipantsIds);
+    faceGroupIds = await getFaceGroupsForParticipants(client, chat.id._serialized, groupParticipantsIds);
 
     let matches = 0
     for (let fgId of faceGroupIds) {
-        const faceGroupChat = (await waClient.getChatById(fgId)) as GroupChat
+        const faceGroupChat = (await client.getChatById(fgId)) as GroupChat
         console.log(`..working on face group ${faceGroupChat.name}`)
         if (faceGroupChat.archived) {
             console.log('....archived group. skip');
             continue
         }
-        const faceUrl = await waClient.getProfilePicUrl(fgId)
+        const faceUrl = await client.getProfilePicUrl(fgId)
         if (!faceUrl) {
             console.log('....not faceUrl. skip')
             continue
@@ -181,11 +175,11 @@ const orchestrate = async (chat: Chat, message: Message) => {
 
 }
 
-const getStatus = async () => {
+const doGetStatus = async (client: Client) => {
     let connected
-    let { info } = waClient
+    let { info } = client
     try {
-        connected = await waClient.isRegisteredUser(BOT_ID);
+        connected = await client.isRegisteredUser(BOT_ID);
     } catch (ex) {
         if (ex.message && ex.message.includes('Session closed. Most likely the page has been closed')) {
             console.info('** session closed')
@@ -198,6 +192,7 @@ const getStatus = async () => {
     return { connected, info }
 }
 
+const getStatus = async () => doGetStatus(myClients[0])
 
 const invokeComparison = async ({ faceImageAsBase64, message, msgMedia, groupId }: { faceImageAsBase64: string, message: Message, msgMedia: MessageMedia, groupId: string }) => {
     const portrait: IMedia = {
@@ -214,19 +209,20 @@ const invokeComparison = async ({ faceImageAsBase64, message, msgMedia, groupId 
 }
 
 const simulate = async (name: string) => {
+    const client = myClients[0]
     simulateWithContext(async (n: string) => {
-        const chats = (await waClient.getChats()).filter(c => c.name == n)
+        const chats = (await client.getChats()).filter(c => c.name == n)
         if (chats.length === 0) {
             console.log(`could find chat named ${n} to simulate. skip`)
             return
         }
-        doSimulate(chats[0].id._serialized)
+        doSimulate(client, chats[0].id._serialized)
     }, name)
 }
 
-const doSimulate = async (chatId: string) => {
+const doSimulate = async (client: Client, chatId: string) => {
     console.log(`simulation chatId: [${chatId}]`)
-    const x = (await waClient.getChats()).filter(c => c.isGroup).map(c => ((c as unknown) as GroupChat))
+    const x = (await client.getChats()).filter(c => c.isGroup).map(c => ((c as unknown) as GroupChat))
     const gr = x.filter(gc => gc.id._serialized === chatId)[0]
     const groupId = gr.id._serialized
     console.log(`simulating group ${gr.name} ${groupId}`)
@@ -246,11 +242,9 @@ const doSimulate = async (chatId: string) => {
         return
     }
     console.log(`found a msg from ${msg.timestamp} to simulate ... lets start`)
-    await orchestrate(gr, msg)
+    await orchestrate(client, gr, msg)
 
 }
 
-console.log('waClient initialize')
-waClient.initialize()
 
-export { getFaceGroups, simulate, getStatus }
+export { simulate, getStatus }

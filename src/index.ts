@@ -1,6 +1,6 @@
 import express, { response } from 'express'
 import 'dotenv/config'
-import { simulate, getFaceGroups, getStatus } from './whatsapp/app'
+import { simulate, getStatus } from './whatsapp/app'
 
 const version = process.env.VERSION || 'dev'
 
@@ -28,10 +28,6 @@ server.get('/api/connected', async (req, res, next) => {
     console.log(`connected check: ${connected} from IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress} UA: ${req.headers['user-agent']}`)
 })
 
-
-server.get('/api/wa/getFaceGroups', async (req, res) => {
-    res.json(await getFaceGroups())
-})
 server.get('/api/wa/simulate', async (req: any, res) => {
     await simulate(req.query?.name || '')
     res.json("OK")
