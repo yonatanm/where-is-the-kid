@@ -12,6 +12,7 @@ const port = process.env.PORT || process.env.APP_PORT
 
 const asset = path.join(__dirname, '..', 'assets')
 server.use('/about', express.static(asset+'/about'));
+
 server.use('/help', express.static(asset+'/about'));
 
 server.get('/api/version', async (req, res) => {
