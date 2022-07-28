@@ -1,6 +1,7 @@
 import express, { response } from 'express'
 import 'dotenv/config'
 import { simulate, getStatus } from './whatsapp/app'
+const path = require('path')
 
 const version = process.env.VERSION || 'dev'
 
@@ -8,6 +9,9 @@ console.log(`we are on the air with version: ${version}`)
 
 const server = express()
 const port = process.env.PORT || process.env.APP_PORT
+
+const asset = path.join(__dirname, '..', 'assets')
+server.use('/about', express.static(asset+'/about'));
 
 server.get('/api/version', async (req, res) => {
     res.send(version)
@@ -36,5 +40,5 @@ server.get('/api/wa/simulate', async (req: any, res) => {
 server.listen(port, async () => {
     console.log('--- listeneing ---')
 
-    console.log(`Example app listening on port ${port}`)
+    console.log(`Example app listening on port ${port}  ${__dirname}`)
 })

@@ -96,6 +96,7 @@ const handleMessage = async (client: Client, message: WAWebJS.Message) => {
 
         if (chat.isGroup) {
             const groupChat = (chat as GroupChat)
+            
             console.log("got a message to group " + chat.name)
 
             //ignore messages to the group I created unless it start
@@ -118,7 +119,7 @@ const handleMessage = async (client: Client, message: WAWebJS.Message) => {
         await orchestrate(client, chat, message)
     }
     catch (ex) {
-        console.error("got error handling message", ex)
+        console.error("got error handling message ", ex)
     }
 }
 
