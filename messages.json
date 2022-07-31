@@ -1,0 +1,5 @@
+2022-07-31 21:49:22 INFO  [global]more info. from {"name":"שחף","userId":"972545944849"} 108854245253488 972545944849 text {"from":"972545944849","id":"wamid.HBgMOTcyNTQ1OTQ0ODQ5FQIAEhggQTJCQ0E1NEU4Q0E0MDYzRUNBQTQ1QUY3MTMwNTBFN0MA","timestamp":"1659293361","text":{"body":"Hello world"},"type":"text"}
+
+
+2022-07-31 21:50:59 INFO  [global]more info. from {"name":"שחף","userId":"972545944849"} 108854245253488 972545944849 image {"from":"972545944849","id":"wamid.HBgMOTcyNTQ1OTQ0ODQ5FQIAEhggQjQ4NEMxNzREM0ZFMjkyODAzNjA5OTg2Nzc3MDBBNTIA","timestamp":"1659293457","type":"image","image":{"mime_type":"image/jpeg","sha256":"F/2OtCANBpoyz18i5tK4qjfF/tQLYdTKzJh/mBPuQgs=","id":"2327068744107355"}}
+

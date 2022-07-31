@@ -146,6 +146,7 @@ const orchestrate = async (client: Client, chat: Chat, message: Message) => {
         }
         // console.log("we have a faceUrl")
         const msgMedia = await message.downloadMedia()
+
         if (!msgMedia) {
             console.log("...couldn't donwload the media. skip")
             continue;
